@@ -170,6 +170,7 @@ export interface CashDailySummary {
   alerts: LiquidityAlert[];
   dailyRows: {
     date: string;
+    description?: string;
     deposit: string;
     withdrawal: string;
     cumulative: string;

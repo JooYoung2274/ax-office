@@ -81,7 +81,7 @@ export function MonthlyClosing() {
           <div style={{ flex: 1 }}>
             <div className="t1">검증 통과 — 차변·대변 합계 일치</div>
             <div className="t2">
-              차변 합계 ₩{d.debitTotal} = 대변 합계 ₩{d.creditTotal} · CRO 결정론적 검증
+              차변 합계 ₩{groupDigits(d.debitTotal)} = 대변 합계 ₩{groupDigits(d.creditTotal)} · CRO 결정론적 검증
             </div>
           </div>
           <span className="badge badge-calc">CALCULATED · 계산완료</span>
@@ -107,11 +107,11 @@ export function MonthlyClosing() {
           <div className="block-figures">
             <div className="fig">
               <div className="l">차변 합계</div>
-              <div className="v">₩{d.debitTotal}</div>
+              <div className="v">₩{groupDigits(d.debitTotal)}</div>
             </div>
             <div className="fig">
               <div className="l">대변 합계</div>
-              <div className="v">₩{d.creditTotal}</div>
+              <div className="v">₩{groupDigits(d.creditTotal)}</div>
             </div>
             <div className="fig">
               <div className="l">불일치 금액</div>
@@ -157,10 +157,10 @@ export function MonthlyClosing() {
               <tr>
                 <td colSpan={3}>합계</td>
                 <td className="num" style={{ color: 'var(--indigo)' }}>
-                  {d.debitTotal}
+                  {groupDigits(d.debitTotal)}
                 </td>
                 <td className="num" style={{ color: 'var(--indigo)' }}>
-                  {d.creditTotal}
+                  {groupDigits(d.creditTotal)}
                 </td>
                 <td className="num">
                   {balanced ? (
@@ -199,12 +199,12 @@ export function MonthlyClosing() {
               <tr>
                 <td className="t-code">BS</td>
                 <td>차변 합계 (자산·비용)</td>
-                <td className="num">{d.debitTotal}</td>
+                <td className="num">{groupDigits(d.debitTotal)}</td>
               </tr>
               <tr>
                 <td className="t-code">BS</td>
                 <td>대변 합계 (부채·자본·수익)</td>
-                <td className="num">{d.creditTotal}</td>
+                <td className="num">{groupDigits(d.creditTotal)}</td>
               </tr>
             </tbody>
             <tfoot>

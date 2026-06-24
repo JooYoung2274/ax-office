@@ -138,16 +138,8 @@ export class FinanceService {
 
     const alerts = this.toLiquidityAlerts(cro);
 
-    // 일일 행 — daily_net.{date}에서 best-effort(입출금/누계 미산출 → 빈 문자열).
-    const dailyRows = dailyNets
-      .map((m) => ({
-        date: shortName(m).slice('daily_net.'.length),
-        deposit: '',
-        withdrawal: '',
-        cumulative: '',
-        flag: undefined as string | undefined,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    // 일일 거래 — 원시 bank_transactions를 일자별로 집계(입금/출금/누계 잔액).
+    const dailyRows = await this.buildDailyRows(cro.tenantId, cro.period);
 
     return {
       asOfDate: cro.period,
@@ -157,6 +149,72 @@ export class FinanceService {
       alerts,
       dailyRows,
     };
+  }
+
+  /** 기간 내 cash 배치의 normalized RawRow를 kind별로 수집. */
+  private async collectNormalized(
+    tenantId: string,
+    period: string,
+    kind: string,
+  ): Promise<Record<string, string>[]> {
+    const batches = await this.prisma.uploadBatch.findMany({
+      where: { tenantId, domain: 'cash' as never, period },
+      select: { id: true },
+    });
+    if (batches.length === 0) return [];
+    const datasets = await this.prisma.rawDataset.findMany({
+      where: { batchId: { in: batches.map((b) => b.id) }, kind },
+      select: { id: true },
+    });
+    if (datasets.length === 0) return [];
+    const rows = await this.prisma.rawRow.findMany({
+      where: { datasetId: { in: datasets.map((d) => d.id) }, isExcluded: false },
+      orderBy: { rowIndex: 'asc' },
+    });
+    return rows
+      .map((r) => (r.normalized ?? {}) as Record<string, string>)
+      .filter((d) => Object.keys(d).length > 0);
+  }
+
+  /** bank_transactions를 거래별 행으로 변환(적요 포함) + 기초잔액 기준 누계 잔액. */
+  private async buildDailyRows(tenantId: string, period: string) {
+    type Row = {
+      date: string;
+      description?: string;
+      deposit: string;
+      withdrawal: string;
+      cumulative: string;
+      flag?: string;
+    };
+    const txns = await this.collectNormalized(tenantId, period, 'bank_transactions');
+    if (txns.length === 0) return [] as Row[];
+    const masters = await this.collectNormalized(tenantId, period, 'bank_account_master');
+    const num = (s: string | undefined) =>
+      Number(String(s ?? '').replace(/[^0-9.-]/g, '')) || 0;
+    const opening = masters.reduce((sum, m) => sum + num(m.openingBalance), 0);
+
+    // 날짜 오름차순(같은 날짜는 입력 순서 유지) → 누계 잔액 계산.
+    const ordered = txns
+      .map((r, i) => ({ r, i, date: (r.txnDate ?? '').slice(0, 10) }))
+      .filter((x) => x.date)
+      .sort((a, b) => (a.date === b.date ? a.i - b.i : a.date.localeCompare(b.date)));
+
+    let running = opening;
+    const rows: Row[] = ordered.map(({ r, date }) => {
+      const dep = num(r.depositAmt);
+      const wd = num(r.withdrawalAmt);
+      running += dep - wd;
+      return {
+        date,
+        description: r.description || undefined,
+        deposit: String(dep),
+        withdrawal: String(wd),
+        cumulative: String(running),
+        flag: undefined,
+      };
+    });
+    // 최근 거래 위주(역순 50건) — 표는 최신이 위로.
+    return rows.reverse().slice(0, 50);
   }
 
   /**

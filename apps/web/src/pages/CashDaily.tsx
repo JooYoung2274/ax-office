@@ -51,7 +51,7 @@ export function CashDaily() {
               <span className="kpi-label">{k.label}</span>
               <CalcBadge />
             </div>
-            <div className={`kpi-value sm${kpiTone(k.value)}`}>{k.value}</div>
+            <div className={`kpi-value sm${kpiTone(k.value)}`}>{formatWon(k.value)}</div>
             {k.unit && (
               <div className={`kpi-sub${/하회|경보|위험/.test(k.unit) ? ' warn' : ''}`}>
                 {k.unit}
@@ -167,8 +167,8 @@ export function CashDaily() {
             <tbody>
               {d.dailyRows.map((r, i) => (
                 <tr key={`${r.date}-${i}`}>
-                  <td>{r.date}</td>
-                  <td>{r.flag ?? '—'}</td>
+                  <td>{shortDate(r.date)}</td>
+                  <td>{r.description ?? r.flag ?? '—'}</td>
                   <td className={`num ${isZero(r.deposit) ? 't-dash' : 't-pos'}`}>
                     {isZero(r.deposit) ? '—' : formatNum(r.deposit)}
                   </td>
@@ -404,14 +404,14 @@ function shortDate(s: string): string {
   return s;
 }
 
-// 큰 금액을 억/만 단위로 축약(축 라벨·마커용).
+// 큰 금액을 억/만 단위로 축약(축 라벨·마커용). 한국 단위(억=1e8, 만=1e4).
 function compactWon(n: number): string {
   const sign = n < 0 ? '−' : '';
   const a = Math.abs(n);
   if (a === 0) return '0';
   if (a >= 1e8) return `${sign}${trim(a / 1e8)}억`;
-  if (a >= 1e4) return `${sign}₩${trim(a / 1e4)}M`;
-  return `${sign}₩${Math.round(a).toLocaleString('ko-KR')}`;
+  if (a >= 1e4) return `${sign}${Math.round(a / 1e4).toLocaleString('ko-KR')}만`;
+  return `${sign}${Math.round(a).toLocaleString('ko-KR')}`;
 }
 function trim(x: number): string {
   return (Math.round(x * 10) / 10).toString();
