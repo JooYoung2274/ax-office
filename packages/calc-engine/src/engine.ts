@@ -16,6 +16,8 @@ import { CASH_METRICS } from './metrics/cash.js';
 import { CASH_FLAGS } from './metrics/cash-flags.js';
 import { CLOSING_METRICS } from './metrics/closing.js';
 import { CLOSING_FLAGS } from './metrics/closing-flags.js';
+import { PAYROLL_METRICS } from './metrics/payroll.js';
+import { PAYROLL_FLAGS } from './metrics/payroll-flags.js';
 import { FlagDef, MetricDef, MetricResult } from './registry.js';
 import {
   CalcContext,
@@ -91,14 +93,24 @@ export function runCalcEngine(input: CalcEngineInput): Cro {
   const validationSummary = runValidation(ctx, ALL_RULES);
 
   // 2) metric 레지스트리(도메인별).
-  const metricDefs = input.domain === 'cash' ? CASH_METRICS : CLOSING_METRICS;
+  const metricDefs =
+    input.domain === 'cash'
+      ? CASH_METRICS
+      : input.domain === 'payroll'
+        ? PAYROLL_METRICS
+        : CLOSING_METRICS;
   const metrics: Metric[] = [];
   for (const def of metricDefs) {
     metrics.push(...runMetricDef(ctx, def));
   }
 
   // 3) flag 레지스트리(metric 참조).
-  const flagDefs = input.domain === 'cash' ? CASH_FLAGS : CLOSING_FLAGS;
+  const flagDefs =
+    input.domain === 'cash'
+      ? CASH_FLAGS
+      : input.domain === 'payroll'
+        ? PAYROLL_FLAGS
+        : CLOSING_FLAGS;
   const flags: Flag[] = [];
   for (const def of flagDefs) {
     flags.push(...runFlagDef(ctx, def, metrics));

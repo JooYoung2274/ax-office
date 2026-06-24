@@ -12,7 +12,7 @@ export interface ValidationRule {
   ruleId: string;
   severity: Severity;
   /** 이 도메인에서만 평가(미지정 시 전 도메인). */
-  domains?: Array<'cash' | 'closing'>;
+  domains?: Array<'cash' | 'closing' | 'payroll'>;
   evaluate(ctx: CalcContext): RuleIssue[];
 }
 

@@ -27,7 +27,7 @@ export class UploadController {
 
   /** GET /upload/templates?domain=cash|closing */
   @Get('templates')
-  templates(@Query('domain') domain?: 'cash' | 'closing') {
+  templates(@Query('domain') domain?: 'cash' | 'closing' | 'payroll') {
     return { templates: templatesForDomain(domain) };
   }
 

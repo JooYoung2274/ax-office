@@ -56,7 +56,7 @@ export class ReportService {
       reportId: r.id,
       title: r.title,
       status: r.status,
-      domain: r.slice === 'cash' ? 'cashflow' : 'monthly_close',
+      domain: r.slice === 'cash' ? 'cashflow' : r.slice === 'payroll' ? 'payroll' : 'monthly_close',
       period: r.period ?? undefined,
       createdAt: r.createdAt.toISOString(),
       authorName: r.createdBy?.name ?? '',
@@ -105,7 +105,7 @@ export class ReportService {
         slice: batch.domain as never,
         period: batch.period ?? null,
         status: ReportStatus.AI_DRAFTING as never,
-        title: `${batch.domain === 'cash' ? '자금일보' : '월결산'} 리포트 (${batch.period ?? ''})`,
+        title: `${batch.domain === 'cash' ? '자금일보' : batch.domain === 'payroll' ? '급여' : '월결산'} 리포트 (${batch.period ?? ''})`,
         createdById: actor.userId,
       },
     });

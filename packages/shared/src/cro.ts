@@ -70,8 +70,8 @@ export const CroSchema = z.object({
   /** 결정론 엔진 버전(재현성·감사). CRO에 박제. */
   engineVersion: z.string(),
   tenantId: z.string(),
-  /** 도메인. MVP: 'cash'(자금일보) | 'closing'(월결산). */
-  domain: z.enum(['cash', 'closing']),
+  /** 도메인. MVP: 'cash'(자금일보) | 'closing'(월결산) | 'payroll'(급여·4대보험). */
+  domain: z.enum(['cash', 'closing', 'payroll']),
   /** 회계 기간. 예: '2026-06' 또는 '2026-06-24'. */
   period: z.string(),
   generatedAt: z.string(),

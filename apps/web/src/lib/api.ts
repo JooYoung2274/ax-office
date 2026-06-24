@@ -18,6 +18,7 @@ import type {
   Cro,
   CashDailySummary,
   MonthlyClosingSummary,
+  PayrollSummary,
 } from './types';
 
 const TOKEN_KEY = 'axaxax.token';
@@ -62,9 +63,9 @@ http.interceptors.response.use(
   },
 );
 
-// 웹 Domain('cashflow'|'monthly_close') ↔ 백엔드 도메인('cash'|'closing') 매핑.
-const toBackendDomain = (d: Domain): 'cash' | 'closing' =>
-  d === 'monthly_close' ? 'closing' : 'cash';
+// 웹 Domain('cashflow'|'monthly_close'|'payroll') ↔ 백엔드 도메인('cash'|'closing'|'payroll') 매핑.
+const toBackendDomain = (d: Domain): 'cash' | 'closing' | 'payroll' =>
+  d === 'monthly_close' ? 'closing' : d === 'payroll' ? 'payroll' : 'cash';
 
 // ───── 인증 ─────
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -86,7 +87,7 @@ export async function getMe(): Promise<import('./types').AuthUser> {
 interface BackendTemplate {
   templateKey: string;
   datasetKind: string;
-  domain: 'cash' | 'closing';
+  domain: 'cash' | 'closing' | 'payroll';
   label: string;
   requiredColumns: string[];
   optionalColumns?: string[];
@@ -253,6 +254,11 @@ export async function getCashDaily(asOfDate?: string): Promise<CashDailySummary>
 
 export async function getMonthlyClosing(period?: string): Promise<MonthlyClosingSummary> {
   const { data } = await http.get<MonthlyClosingSummary>('/finance/monthly-closing', { params: { period } });
+  return data;
+}
+
+export async function getPayrollSummary(period?: string): Promise<PayrollSummary> {
+  const { data } = await http.get<PayrollSummary>('/finance/payroll', { params: { period } });
   return data;
 }
 

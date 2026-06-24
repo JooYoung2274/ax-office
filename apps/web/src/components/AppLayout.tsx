@@ -38,6 +38,13 @@ const I = {
       <path d="M8 8h8M8 12h8M8 16h5" />
     </svg>
   ),
+  payroll: (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="9" cy="7" r="4" />
+      <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
   report: (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
@@ -58,6 +65,7 @@ const NAV: NavDef[] = [
   { to: '/upload', label: '업로드', title: '업로드', icon: I.upload },
   { to: '/cash-daily', label: '자금일보', title: '자금일보', icon: I.cash },
   { to: '/monthly-closing', label: '월결산', title: '월결산', icon: I.closing },
+  { to: '/payroll', label: '급여', title: '급여', icon: I.payroll },
   { to: '/reports', label: '리포트', title: '리포트', icon: I.report },
   {
     to: '/audit-log',

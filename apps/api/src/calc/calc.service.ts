@@ -86,7 +86,7 @@ export class CalcService {
 
     const input: CalcEngineInput = {
       tenantId: batch.tenantId,
-      domain: batch.domain as 'cash' | 'closing',
+      domain: batch.domain as 'cash' | 'closing' | 'payroll',
       period: batch.period ?? new Date().toISOString().slice(0, 10),
       inputsHash,
       datasets,

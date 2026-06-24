@@ -19,7 +19,7 @@ export class FinanceController {
 
   /** GET /finance/periods?domain=cash|closing — 기간 목록. */
   @Get('periods')
-  periods(@Query('domain') domain: 'cash' | 'closing' = 'cash') {
+  periods(@Query('domain') domain: 'cash' | 'closing' | 'payroll' = 'cash') {
     return this.finance.listPeriods(domain);
   }
 
@@ -33,5 +33,11 @@ export class FinanceController {
   @Get('monthly-closing')
   monthlyClosing(@Query('period') period?: string) {
     return this.finance.monthlyClosing(period);
+  }
+
+  /** GET /finance/payroll?period= — 급여·4대보험 요약(PayrollSummary). */
+  @Get('payroll')
+  payroll(@Query('period') period?: string) {
+    return this.finance.payroll(period);
   }
 }

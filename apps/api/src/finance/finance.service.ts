@@ -15,7 +15,7 @@ export class FinanceService {
   ) {}
 
   /** 도메인별 기간 목록(업로드 배치 기준). */
-  async listPeriods(domain: 'cash' | 'closing') {
+  async listPeriods(domain: 'cash' | 'closing' | 'payroll') {
     const batches = await this.prisma.uploadBatch.findMany({
       where: { tenantId: this.tenant.tenantId, domain: domain as never },
       orderBy: { createdAt: 'desc' },
@@ -151,14 +151,15 @@ export class FinanceService {
     };
   }
 
-  /** 기간 내 cash 배치의 normalized RawRow를 kind별로 수집. */
+  /** 기간 내 특정 도메인 배치의 normalized RawRow를 kind별로 수집. */
   private async collectNormalized(
     tenantId: string,
     period: string,
     kind: string,
+    domain: 'cash' | 'closing' | 'payroll' = 'cash',
   ): Promise<Record<string, string>[]> {
     const batches = await this.prisma.uploadBatch.findMany({
-      where: { tenantId, domain: 'cash' as never, period },
+      where: { tenantId, domain: domain as never, period },
       select: { id: true },
     });
     if (batches.length === 0) return [];
@@ -278,6 +279,87 @@ export class FinanceService {
       anomalies,
       // 장부 vs 대상 대사는 아직 CRO에서 도출 불가(후속).
       reconciliations: [],
+    };
+  }
+
+  /**
+   * 급여(슬라이스 C) 요약 — 최신 payroll CRO에서 직원별 공제·실수령액 + 집계를 조립.
+   * 직원별 수치는 emp.* metric(코드 계산), 이름·부서는 급여대장 원시행에서 조인.
+   */
+  async payroll(period?: string) {
+    const tenantId = this.tenant.tenantId;
+    const result =
+      (await this.prisma.calculationResult.findFirst({
+        where: { tenantId, slice: 'payroll' as never, ...(period ? { period } : {}) },
+        orderBy: { computedAt: 'desc' },
+      })) ??
+      (period
+        ? await this.prisma.calculationResult.findFirst({
+            where: { tenantId, slice: 'payroll' as never },
+            orderBy: { computedAt: 'desc' },
+          })
+        : null);
+
+    if (!result) {
+      return {
+        period: period ?? '',
+        headcount: 0,
+        grossTotal: '0',
+        insuranceTotal: '0',
+        incomeTaxTotal: '0',
+        deductionTotal: '0',
+        netpayTotal: '0',
+        employees: [],
+        alerts: [],
+      };
+    }
+
+    const cro = result.cro as unknown as Cro;
+    const prefix = `${cro.domain}.${cro.period}.`;
+    const mv = new Map<string, string>();
+    for (const m of cro.metrics ?? []) mv.set(m.id, m.value);
+    const agg = (name: string) => mv.get(`${prefix}${name}`) ?? '0';
+    const slug = (s: string) =>
+      (s || '').replace(/\s+/g, '_').replace(/[^0-9A-Za-z가-힣_.-]/g, '') || 'X';
+    const num = (s: string) => Number(String(s).replace(/[^0-9.-]/g, '')) || 0;
+
+    // 이름·부서는 급여대장 원시행에서(코드 계산값과 사번 slug로 조인).
+    const regRows = await this.collectNormalized(tenantId, cro.period, 'payroll_register', 'payroll');
+
+    const employees = regRows.map((r) => {
+      const empId = r.empId ?? '';
+      const sl = slug(empId);
+      const emp = (field: string) => agg(`emp.${field}.${sl}`);
+      const insuranceTotal = emp('deduction.insurance_total');
+      const deductionTotal = emp('deduction.total');
+      const incomeTax = String(num(deductionTotal) - num(insuranceTotal));
+      return {
+        empId,
+        name: r.name ?? '',
+        dept: r.dept ?? '',
+        gross: emp('gross'),
+        taxable: emp('taxable'),
+        pension: emp('deduction.pension'),
+        health: emp('deduction.health'),
+        ltcare: emp('deduction.ltcare'),
+        employment: emp('deduction.employment'),
+        insuranceTotal,
+        incomeTax,
+        deductionTotal,
+        netpay: emp('netpay'),
+      };
+    });
+
+    return {
+      period: cro.period,
+      headcount: Math.round(num(agg('payroll.headcount'))),
+      grossTotal: agg('payroll.gross.total'),
+      insuranceTotal: agg('payroll.insurance.total'),
+      incomeTaxTotal: agg('payroll.income_tax.total'),
+      deductionTotal: agg('payroll.deduction.total'),
+      netpayTotal: agg('payroll.netpay.total'),
+      employees,
+      alerts: this.toLiquidityAlerts(cro),
     };
   }
 

@@ -7,7 +7,7 @@ import { DatasetKind } from '@axaxax/calc-engine';
 export interface TemplateDef {
   templateKey: string; // Prisma TemplateKey
   datasetKind: string; // calc-engine DatasetKind
-  domain: 'cash' | 'closing';
+  domain: 'cash' | 'closing' | 'payroll';
   label: string;
   requiredColumns: string[];
   optionalColumns: string[];
@@ -97,9 +97,29 @@ export const TEMPLATES: TemplateDef[] = [
       },
     ],
   },
+  {
+    templateKey: 'PAYROLL_REGISTER',
+    datasetKind: DatasetKind.PAYROLL_REGISTER,
+    domain: 'payroll',
+    label: '직원 급여대장',
+    requiredColumns: ['사번', '이름', '기본급'],
+    optionalColumns: ['부서', '과세수당', '식대', '소득세', '지방소득세', '부양가족수', '전월총지급'],
+    sampleRows: [
+      {
+        사번: 'E001',
+        이름: '김직원',
+        부서: '재무팀',
+        기본급: '3000000',
+        과세수당: '200000',
+        식대: '200000',
+        소득세: '84850',
+        지방소득세: '8480',
+      },
+    ],
+  },
 ];
 
-export function templatesForDomain(domain?: 'cash' | 'closing'): TemplateDef[] {
+export function templatesForDomain(domain?: 'cash' | 'closing' | 'payroll'): TemplateDef[] {
   if (!domain) return TEMPLATES;
   return TEMPLATES.filter((t) => t.domain === domain);
 }

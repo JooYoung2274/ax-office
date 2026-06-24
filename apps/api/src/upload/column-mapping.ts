@@ -48,6 +48,17 @@ const SYNONYMS: Record<string, string[]> = {
   entryDate: ['전표일자', '전표일'],
   lineNo: ['행번호'],
   drcr: ['차대구분'],
+  // 급여·4대보험 — 급여대장
+  empId: ['사번', '사원번호', '직원번호', '사원코드'],
+  name: ['이름', '성명', '직원명'],
+  dept: ['부서', '부서명', '소속'],
+  baseSalary: ['기본급', '기본급여'],
+  taxableAllowance: ['과세수당', '제수당', '직책수당'],
+  mealAllowance: ['식대', '식비'],
+  incomeTax: ['소득세'],
+  localTax: ['지방소득세', '지방세'],
+  dependents: ['부양가족수', '부양가족'],
+  prevGross: ['전월총지급', '전월급여', '전월지급액'],
 };
 
 /**
@@ -104,6 +115,18 @@ const FIELDS_BY_KIND: Record<string, string[]> = {
     'amount',
     'description',
     'counterparty',
+  ],
+  [DatasetKind.PAYROLL_REGISTER]: [
+    'empId',
+    'name',
+    'dept',
+    'baseSalary',
+    'taxableAllowance',
+    'mealAllowance',
+    'incomeTax',
+    'localTax',
+    'dependents',
+    'prevGross',
   ],
 };
 

@@ -7,8 +7,8 @@ export class CreateUploadDto {
   templateKey!: string;
 
   /** 도메인. */
-  @IsIn(['cash', 'closing'])
-  domain!: 'cash' | 'closing';
+  @IsIn(['cash', 'closing', 'payroll'])
+  domain!: 'cash' | 'closing' | 'payroll';
 
   /** 기간. 자금일보(cash)는 일자 YYYY-MM-DD, 월결산(closing)은 월 YYYY-MM (옵션). */
   @IsOptional()

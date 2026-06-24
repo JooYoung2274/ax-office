@@ -101,6 +101,11 @@ export function min(values: Numeric[]): Decimal | null {
   return values.reduce<Decimal>((m, v) => (dec(v).lessThan(m) ? dec(v) : m), dec(values[0]));
 }
 
+export function max(values: Numeric[]): Decimal | null {
+  if (values.length === 0) return null;
+  return values.reduce<Decimal>((m, v) => (dec(v).greaterThan(m) ? dec(v) : m), dec(values[0]));
+}
+
 /**
  * 표시용 문자열. ROUND_HALF_UP으로 scale 자리 반올림한 일반표기 문자열.
  * Metric.value 직렬화의 종착점.

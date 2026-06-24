@@ -26,6 +26,7 @@ type StepNum = 1 | 2 | 3;
 const DOMAINS: { key: Domain; label: string; desc: string }[] = [
   { key: 'cashflow', label: '자금일보 / 현금흐름', desc: '은행거래내역 · 예정 입출금' },
   { key: 'monthly_close', label: '월 결산', desc: '시산표 · 전표 · 보조원장' },
+  { key: 'payroll', label: '급여·4대보험', desc: '직원 급여대장 → 4대보험·실수령액 계산' },
 ];
 
 // 자동 매핑 신뢰도 임계값 — 미만이면 "자동 매핑(확인)" 경고.
@@ -117,11 +118,11 @@ export function UploadWizard() {
   const [batch, setBatch] = useState<Batch | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
 
-  // 업로드 기간: 자금일보(cashflow)는 일자(YYYY-MM-DD), 월결산은 월(YYYY-MM).
+  // 업로드 기간: 자금일보(cashflow)는 일자(YYYY-MM-DD), 월결산·급여는 월(YYYY-MM).
   // 동일 기간의 여러 파일(계좌·거래·스케줄)이 하나의 CRO로 집계되도록 고정.
   const period = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return domain === 'monthly_close' ? today.slice(0, 7) : today;
+    return domain === 'monthly_close' || domain === 'payroll' ? today.slice(0, 7) : today;
   }, [domain]);
 
   return (

@@ -5,10 +5,11 @@
  * WARN : 월대비 ±임계 초과, z-score/IQR 이상치, 보조원장 vs GL 차이.
  * INFO : 신규 계정코드 출현.
  */
-import { abs, dec, div, gt, sub, sum } from '../decimal.js';
+import { abs, dec, div, gt, lt, moneyString, sub, sum } from '../decimal.js';
 import { dateISO, hasColumn, num, numOr0, str } from '../parse.js';
 import { CalcContext, DatasetKind, RawRow, RuleIssue } from '../types.js';
 import { ValidationRule } from './engine.js';
+import { computeEmp } from '../metrics/payroll.js';
 
 // ──────────────────────────────────────────────────────────────────────────
 // 통계 헬퍼(z-score / IQR) — 결정론. 표본은 정렬 후 사용.
@@ -429,6 +430,63 @@ export const CLOSING_RULES: ValidationRule[] = [
   newAccount,
 ];
 
+// ──────────────────────────────────────────────────────────────────────────
+// 급여(payroll) FATAL 규칙
+// ──────────────────────────────────────────────────────────────────────────
+
+/** crit.payroll.missingColumn — 급여대장 필수 컬럼(empId·baseSalary) 누락. */
+export const payrollMissingColumn: ValidationRule = {
+  ruleId: 'crit.payroll.missingColumn',
+  severity: 'FATAL',
+  domains: ['payroll'],
+  evaluate(ctx) {
+    const rows = ctx.rows(DatasetKind.PAYROLL_REGISTER);
+    if (rows.length === 0) return [];
+    const issues: RuleIssue[] = [];
+    for (const col of ['empId', 'baseSalary']) {
+      if (!hasColumn(rows, col)) {
+        issues.push({ ruleId: 'crit.payroll.missingColumn', severity: 'FATAL', message: `급여대장 필수 컬럼 누락: ${col}` });
+      }
+    }
+    return issues;
+  },
+};
+
+/** crit.payroll.negativeBase — 기본급 음수. */
+export const payrollNegativeBase: ValidationRule = {
+  ruleId: 'crit.payroll.negativeBase',
+  severity: 'FATAL',
+  domains: ['payroll'],
+  evaluate(ctx) {
+    const issues: RuleIssue[] = [];
+    for (const r of ctx.rows(DatasetKind.PAYROLL_REGISTER)) {
+      if (lt(numOr0(r, 'baseSalary'), 0)) {
+        issues.push({ ruleId: 'crit.payroll.negativeBase', severity: 'FATAL', message: `${str(r, 'name') || str(r, 'empId')} 기본급이 음수`, sourceRowIds: [r.id] });
+      }
+    }
+    return issues;
+  },
+};
+
+/** crit.payroll.negativeNetpay — 공제 과다로 실수령액 음수. */
+export const payrollNegativeNetpay: ValidationRule = {
+  ruleId: 'crit.payroll.negativeNetpay',
+  severity: 'FATAL',
+  domains: ['payroll'],
+  evaluate(ctx) {
+    const issues: RuleIssue[] = [];
+    for (const r of ctx.rows(DatasetKind.PAYROLL_REGISTER)) {
+      const e = computeEmp(ctx, r);
+      if (lt(e.netpay, 0)) {
+        issues.push({ ruleId: 'crit.payroll.negativeNetpay', severity: 'FATAL', message: `${e.name || e.empId} 실수령액이 음수(${moneyString(e.netpay)}원) — 공제가 지급을 초과`, sourceRowIds: [e.rowId] });
+      }
+    }
+    return issues;
+  },
+};
+
+export const PAYROLL_RULES: ValidationRule[] = [payrollMissingColumn, payrollNegativeBase, payrollNegativeNetpay];
+
 /** 전체 규칙(엔진은 도메인 필터로 자동 선별). */
 export const ALL_RULES: ValidationRule[] = [
   debitCreditMismatch,
@@ -440,6 +498,9 @@ export const ALL_RULES: ValidationRule[] = [
   distributionOutlier,
   subledgerVsGL,
   newAccount,
+  payrollMissingColumn,
+  payrollNegativeBase,
+  payrollNegativeNetpay,
 ];
 
 // lint: 미사용 import 방지용 참조(타입 전용 모듈 경계).

@@ -23,7 +23,7 @@ export interface RawDataset {
 /** 엔진 입력. caller가 정규화/해시까지 끝낸 스냅샷을 넘긴다. */
 export interface CalcEngineInput {
   tenantId: string;
-  domain: 'cash' | 'closing';
+  domain: 'cash' | 'closing' | 'payroll';
   /** 'YYYY-MM' 또는 'YYYY-MM-DD'. */
   period: string;
   /** 소스 스냅샷의 SHA-256(caller 제공). */
@@ -54,6 +54,22 @@ export interface Thresholds {
   minSampleSize: number;
   /** 보조원장 vs GL 차이 허용액(원). 기본 10000. */
   subledgerVsGlTolerance: string;
+
+  // ── 급여·4대보험(payroll) — 근로자 부담 요율(2024 기준, tenant 오버라이드 가능) ──
+  /** 국민연금 요율(근로자). 기본 0.045. */
+  pensionRate: string;
+  /** 국민연금 기준소득월액 상한(원). 기본 6170000. */
+  pensionMaxBase: string;
+  /** 건강보험 요율(근로자). 기본 0.03545. */
+  healthRate: string;
+  /** 장기요양 요율(건강보험료 대비). 기본 0.1295. */
+  ltcareRate: string;
+  /** 고용보험 요율(근로자). 기본 0.009. */
+  employmentRate: string;
+  /** 식대 비과세 한도(월, 원). 초과분은 과세. 기본 200000. */
+  mealTaxFreeLimit: string;
+  /** 공제율(공제합/총지급) 경고 임계(%). 기본 35. */
+  deductionRatePct: number;
 }
 
 export const DEFAULT_THRESHOLDS: Thresholds = {
@@ -64,6 +80,13 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   iqrMultiplier: 1.5,
   minSampleSize: 6,
   subledgerVsGlTolerance: '10000',
+  pensionRate: '0.045',
+  pensionMaxBase: '6170000',
+  healthRate: '0.03545',
+  ltcareRate: '0.1295',
+  employmentRate: '0.009',
+  mealTaxFreeLimit: '200000',
+  deductionRatePct: 35,
 };
 
 /** 데이터셋 kind 상수(오타 방지). */
@@ -77,6 +100,7 @@ export const DatasetKind = {
   SUBLEDGER_AP: 'subledger_ap',
   FIXED_ASSET: 'fixed_asset',
   COMPARATIVE_FS: 'comparative_fs',
+  PAYROLL_REGISTER: 'payroll_register',
 } as const;
 
 /**
@@ -85,7 +109,7 @@ export const DatasetKind = {
  */
 export interface CalcContext {
   tenantId: string;
-  domain: 'cash' | 'closing';
+  domain: 'cash' | 'closing' | 'payroll';
   period: string;
   inputsHash: string;
   thresholds: Thresholds;

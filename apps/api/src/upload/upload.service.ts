@@ -45,7 +45,7 @@ export class UploadService {
   /** 파일 업로드 → 배치 생성 + parse enqueue. 중복 해시는 409. */
   async receiveFile(
     file: Express.Multer.File,
-    meta: { templateKey: string; domain: 'cash' | 'closing'; period?: string },
+    meta: { templateKey: string; domain: 'cash' | 'closing' | 'payroll'; period?: string },
     actor: { userId: string; tenantId: string },
   ) {
     if (!file?.buffer) throw new BadRequestException('파일이 없습니다.');

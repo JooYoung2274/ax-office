@@ -11,7 +11,7 @@ import type {
 export type { Role, ReportStatus, Cro, ReportContent, Severity };
 
 /** 분석 도메인(슬라이스). */
-export type Domain = 'cashflow' | 'monthly_close';
+export type Domain = 'cashflow' | 'monthly_close' | 'payroll';
 
 /** 인증 사용자. */
 export interface AuthUser {
@@ -176,6 +176,36 @@ export interface CashDailySummary {
     cumulative: string;
     flag?: string;
   }[];
+}
+
+/** 급여(슬라이스) 직원별 명세. 4대보험·실수령액은 모두 CRO 코드 계산값. */
+export interface PayrollEmployee {
+  empId: string;
+  name: string;
+  dept: string;
+  gross: string;
+  taxable: string;
+  pension: string;
+  health: string;
+  ltcare: string;
+  employment: string;
+  insuranceTotal: string;
+  incomeTax: string;
+  deductionTotal: string;
+  netpay: string;
+}
+
+/** 급여(슬라이스) 요약. */
+export interface PayrollSummary {
+  period: string;
+  headcount: number;
+  grossTotal: string;
+  insuranceTotal: string;
+  incomeTaxTotal: string;
+  deductionTotal: string;
+  netpayTotal: string;
+  employees: PayrollEmployee[];
+  alerts: { id: string; severity: 'high' | 'medium' | 'low'; title: string; amount?: string }[];
 }
 
 /** 월결산(슬라이스 B) 요약. */
