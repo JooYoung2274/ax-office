@@ -141,6 +141,9 @@ export class FinanceService {
     // 일일 거래 — 원시 bank_transactions를 일자별로 집계(입금/출금/누계 잔액).
     const dailyRows = await this.buildDailyRows(cro.tenantId, cro.period);
 
+    // 매출채권 회수(AR aging) — 있으면 섹션 추가.
+    const ar = await this.buildAr(cro);
+
     return {
       asOfDate: cro.period,
       kpis,
@@ -148,6 +151,60 @@ export class FinanceService {
       safetyLine,
       alerts,
       dailyRows,
+      ar,
+    };
+  }
+
+  /** 매출채권 회수 섹션 — 집계는 CRO metric, 거래처별 표는 원시행 aging. AR 없으면 undefined. */
+  private async buildAr(cro: Cro) {
+    const metrics = cro.metrics ?? [];
+    const prefix = `${cro.domain}.${cro.period}.`;
+    const short = (m: { id: string }) => (m.id.startsWith(prefix) ? m.id.slice(prefix.length) : m.id);
+    const get = (name: string) => metrics.find((m) => short(m) === name)?.value;
+
+    const total = get('ar.total');
+    if (total == null) return undefined; // 매출채권 데이터 미업로드
+
+    const BUCKETS: Array<[string, string]> = [
+      ['current', '미도래'],
+      ['d1_30', '1~30일'],
+      ['d31_60', '31~60일'],
+      ['d61_90', '61~90일'],
+      ['d90plus', '90일+'],
+    ];
+    const buckets = BUCKETS.map(([key, label]) => ({ key, label, amount: get(`ar.bucket.${key}`) ?? '0' }));
+
+    // 거래처별 — 원시행에서 기준일(asOf) 대비 연체일수·구간 산출.
+    const rows = await this.collectNormalized(cro.tenantId, cro.period, 'accounts_receivable');
+    const asOf = cro.period.length === 10 ? cro.period : `${cro.period}-01`;
+    const num = (s: string | undefined) => Number(String(s ?? '').replace(/[^0-9.-]/g, '')) || 0;
+    const overdueDays = (due: string) => {
+      const d = Date.parse(`${due}T00:00:00Z`);
+      const a = Date.parse(`${asOf}T00:00:00Z`);
+      return Number.isNaN(d) || Number.isNaN(a) ? 0 : Math.round((a - d) / 86_400_000);
+    };
+    const bucketOf = (od: number) =>
+      od <= 0 ? '미도래' : od <= 30 ? '1~30일' : od <= 60 ? '31~60일' : od <= 90 ? '61~90일' : '90일+';
+
+    const byCp = new Map<string, { amount: number; worst: number }>();
+    for (const r of rows) {
+      const name = r.counterparty || '(미지정)';
+      const od = overdueDays((r.dueDate ?? '').slice(0, 10));
+      const g = byCp.get(name) ?? { amount: 0, worst: 0 };
+      g.amount += num(r.amount);
+      g.worst = Math.max(g.worst, od);
+      byCp.set(name, g);
+    }
+    const byCounterparty = [...byCp.entries()]
+      .map(([name, g]) => ({ name, amount: String(g.amount), overdueDays: g.worst, bucket: bucketOf(g.worst) }))
+      .sort((a, b) => Number(b.amount) - Number(a.amount));
+
+    return {
+      total,
+      overdueTotal: get('ar.overdue.total') ?? '0',
+      concentration: get('ar.concentration') ?? '0',
+      buckets,
+      byCounterparty,
     };
   }
 

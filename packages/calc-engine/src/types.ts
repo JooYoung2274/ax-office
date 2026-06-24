@@ -70,6 +70,12 @@ export interface Thresholds {
   mealTaxFreeLimit: string;
   /** 공제율(공제합/총지급) 경고 임계(%). 기본 35. */
   deductionRatePct: number;
+
+  // ── 매출채권 회수(AR aging) ──
+  /** 거래처 매출 집중도 경고 임계(%). 기본 30. */
+  arConcentrationPct: number;
+  /** 장기 미회수(대손 위험) 연체일수 임계. 기본 90. */
+  arLongOverdueDays: number;
 }
 
 export const DEFAULT_THRESHOLDS: Thresholds = {
@@ -87,6 +93,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   employmentRate: '0.009',
   mealTaxFreeLimit: '200000',
   deductionRatePct: 35,
+  arConcentrationPct: 30,
+  arLongOverdueDays: 90,
 };
 
 /** 데이터셋 kind 상수(오타 방지). */
@@ -101,6 +109,7 @@ export const DatasetKind = {
   FIXED_ASSET: 'fixed_asset',
   COMPARATIVE_FS: 'comparative_fs',
   PAYROLL_REGISTER: 'payroll_register',
+  AR_AGING: 'accounts_receivable',
 } as const;
 
 /**

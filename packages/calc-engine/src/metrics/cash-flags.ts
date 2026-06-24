@@ -7,6 +7,7 @@ import { dec, lt, moneyString } from '../decimal.js';
 import { metricId } from '../ids.js';
 import { FlagDef } from '../registry.js';
 import { FORECAST_MIN_BALANCE_NAME } from './cash.js';
+import { AR_FLAGS } from './cash-ar.js';
 
 /**
  * flag.min_balance_below_threshold — 예측 최저잔액 < 안전선.
@@ -38,4 +39,4 @@ export const minBalanceBelowThreshold: FlagDef = {
   },
 };
 
-export const CASH_FLAGS: FlagDef[] = [minBalanceBelowThreshold];
+export const CASH_FLAGS: FlagDef[] = [minBalanceBelowThreshold, ...AR_FLAGS];

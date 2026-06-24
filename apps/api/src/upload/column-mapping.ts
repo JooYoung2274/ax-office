@@ -33,7 +33,11 @@ const SYNONYMS: Record<string, string[]> = {
   scheduledDate: ['예정일자', '예정일'],
   direction: ['구분', '수지구분'],
   itemType: ['항목유형', '유형'],
-  amount: ['금액'],
+  amount: ['금액', '미수금액', '미수금'],
+  // 매출채권(AR aging)
+  dueDate: ['만기일', '만기', '약정회수일', '회수예정일'],
+  invoiceDate: ['매출일', '세금계산서일자', '발행일'],
+  custId: ['거래처코드', '거래처번호'],
   certainty: ['확정도'],
   refNo: ['어음만기/문서번호', '문서번호', '어음만기'],
   // 월결산 — 시산표
@@ -128,6 +132,7 @@ const FIELDS_BY_KIND: Record<string, string[]> = {
     'dependents',
     'prevGross',
   ],
+  [DatasetKind.AR_AGING]: ['counterparty', 'amount', 'dueDate', 'invoiceDate', 'custId'],
 };
 
 /** datasetKind에 허용된 (field, synonyms) 쌍만 — 정의 순서 유지(결정론). */

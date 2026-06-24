@@ -176,6 +176,14 @@ export interface CashDailySummary {
     cumulative: string;
     flag?: string;
   }[];
+  /** 매출채권 회수(AR aging) — 업로드 시에만. */
+  ar?: {
+    total: string;
+    overdueTotal: string;
+    concentration: string;
+    buckets: { key: string; label: string; amount: string }[];
+    byCounterparty: { name: string; amount: string; overdueDays: number; bucket: string }[];
+  };
 }
 
 /** 급여(슬라이스) 직원별 명세. 4대보험·실수령액은 모두 CRO 코드 계산값. */

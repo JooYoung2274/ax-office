@@ -8,6 +8,7 @@ import { add, dec, Decimal, moneyString, sub, sum } from '../decimal.js';
 import { dateISO, numOr0, str } from '../parse.js';
 import { MetricDef, MetricResult } from '../registry.js';
 import { CalcContext, DatasetKind, RawRow } from '../types.js';
+import { AR_METRICS } from './cash-ar.js';
 
 /** 계좌별 (입금합−출금합). 명시 거래후잔액이 마지막에 있으면 그것을 우선. */
 function bankBalances(ctx: CalcContext): Map<string, { balance: Decimal; rowIds: string[] }> {
@@ -230,6 +231,7 @@ export const CASH_METRICS: MetricDef[] = [
   available,
   forecastConfirmed,
   forecastMinBalance,
+  ...AR_METRICS,
 ];
 
 /** 예측 최저잔액 metricId(플래그가 참조). 외부 노출용. */

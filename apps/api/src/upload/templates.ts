@@ -98,6 +98,17 @@ export const TEMPLATES: TemplateDef[] = [
     ],
   },
   {
+    templateKey: 'AR_AGING',
+    datasetKind: DatasetKind.AR_AGING,
+    domain: 'cash',
+    label: '매출채권(거래처별 미수금)',
+    requiredColumns: ['거래처', '미수금액', '만기일'],
+    optionalColumns: ['매출일', '거래처코드'],
+    sampleRows: [
+      { 거래처: '(주)가나', 미수금액: '50000000', 만기일: '2026-06-10', 매출일: '2026-05-11' },
+    ],
+  },
+  {
     templateKey: 'PAYROLL_REGISTER',
     datasetKind: DatasetKind.PAYROLL_REGISTER,
     domain: 'payroll',

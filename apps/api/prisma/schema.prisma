@@ -57,6 +57,7 @@ enum TemplateKey {
   FIXED_ASSET
   COMPARATIVE_FS
   PAYROLL_REGISTER
+  AR_AGING
 }
 
 // 업로드 배치 처리 상태 (BullMQ 파이프라인 단계와 1:1)

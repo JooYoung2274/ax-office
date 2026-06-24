@@ -20,7 +20,8 @@ export function CashDaily() {
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
 
   const d = q.data;
-  if (!d || d.kpis.length === 0) {
+  // KPI·예측·경보·매출채권 중 하나라도 있으면 렌더(자금 데이터 없이 AR만 있어도 표시).
+  if (!d || (d.kpis.length === 0 && d.forecast.length === 0 && d.alerts.length === 0 && !d.ar)) {
     return (
       <div className="page">
         <div className="card">
@@ -184,6 +185,67 @@ export function CashDaily() {
           </table>
         )}
       </section>
+
+      {/* ── 매출채권 회수 (AR aging) — 업로드 시에만 ──────────── */}
+      {d.ar && (
+        <section className="section">
+          <div className="section-head">
+            <div className="head-left">
+              <h2>매출채권 회수</h2>
+              <CalcBadge />
+            </div>
+            <span className="meta">
+              총 미수 {formatWon(d.ar.total)} · 연체 {formatWon(d.ar.overdueTotal)} · 최대거래처 {d.ar.concentration}%
+            </span>
+          </div>
+
+          {/* 연령구간 막대 */}
+          <div style={{ display: 'flex', gap: 1, padding: '14px 16px 4px', background: 'var(--border-soft)' }}>
+            {d.ar.buckets.map((b) => {
+              const overdue = b.key !== 'current';
+              return (
+                <div key={b.key} style={{ flex: 1, background: 'var(--surface)', padding: '10px 12px' }}>
+                  <div style={{ fontSize: 11.5, color: overdue ? 'var(--warn-text)' : 'var(--text-3)' }}>{b.label}</div>
+                  <div
+                    className="tnum"
+                    style={{ marginTop: 4, fontSize: 15, fontWeight: 700, color: b.key === 'd90plus' && !isZero(b.amount) ? 'var(--danger-text)' : 'var(--text)' }}
+                  >
+                    {formatNum(b.amount)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 거래처별 미수금 */}
+          <table className="data-table tnum">
+            <thead>
+              <tr>
+                <th>거래처</th>
+                <th className="num">미수금</th>
+                <th className="num">연체일수</th>
+                <th>구간</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.ar.byCounterparty.map((c) => {
+                const danger = c.overdueDays > 90;
+                const warn = c.overdueDays > 0;
+                return (
+                  <tr key={c.name}>
+                    <td>{c.name}</td>
+                    <td className="num" style={{ fontWeight: 600 }}>{formatNum(c.amount)}</td>
+                    <td className={`num ${danger ? 't-neg' : ''}`}>{c.overdueDays > 0 ? `${c.overdueDays}일` : '—'}</td>
+                    <td>
+                      <span className={`tag ${danger ? 'tag-red' : warn ? 'tag-warn' : 'tag-green'}`}>{c.bucket}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
+      )}
     </div>
   );
 }
