@@ -83,6 +83,29 @@ test('식대 비과세 한도(20만) 초과 → 경고 플래그', () => {
   assert.equal(flag?.severity, 'WARN');
 });
 
+test('전월 대비 총지급 급변동(±임계 초과) → 경고 플래그', () => {
+  const cro = runCalcEngine({
+    ...base,
+    datasets: [
+      {
+        kind: DatasetKind.PAYROLL_REGISTER,
+        rows: [
+          // E010: 전월 200만 → 당월 340만(+70%) → 급변동 플래그
+          { id: 'r1', data: { empId: 'E010', name: '급증', baseSalary: '3400000', prevGross: '2000000', incomeTax: '90000', localTax: '9000' } },
+          // E011: 전월 290만 → 당월 300만(+3.4%) → 정상(플래그 없음)
+          { id: 'r2', data: { empId: 'E011', name: '정상', baseSalary: '3000000', prevGross: '2900000', incomeTax: '80000', localTax: '8000' } },
+        ],
+      },
+    ],
+  });
+  const flag = cro.flags.find((f) => f.id === flagId('payroll', '2026-06', 'payroll_mom_change'));
+  assert.ok(flag, '급변동 플래그 1건 발화(E010만)');
+  assert.equal(flag?.severity, 'WARN');
+  assert.equal(flag?.accountId, 'E010');
+  // E011은 플래그 없음
+  assert.equal(cro.flags.filter((f) => f.type === 'payroll_mom_change').length, 1);
+});
+
 test('실수령액 음수 → FATAL(AI 차단)', () => {
   const cro = runCalcEngine({
     ...base,

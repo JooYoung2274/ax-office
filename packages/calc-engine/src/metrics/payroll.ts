@@ -30,6 +30,8 @@ export interface EmpPay {
   localTax: Decimal;
   deductionTotal: Decimal;
   netpay: Decimal;
+  /** 전월 총지급액(입력, 급변동 비교용). 미입력 시 0. */
+  prevGross: Decimal;
 }
 
 /** 원단위 반올림(ROUND_HALF_UP). */
@@ -82,6 +84,7 @@ export function computeEmp(ctx: CalcContext, row: RawRow): EmpPay {
     localTax,
     deductionTotal,
     netpay,
+    prevGross: numOr0(row, 'prevGross'),
   };
 }
 
