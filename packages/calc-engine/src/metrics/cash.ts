@@ -4,7 +4,7 @@
  * 은행별 잔액 집계, 일일 순자금수지, 가용자금, N일 확정 현금흐름 예측,
  * 예측 최저잔액. 모두 순수함수 + Decimal 연산.
  */
-import { add, dec, Decimal, moneyString, sub, sum } from '../decimal.js';
+import { add, dec, Decimal, max, moneyString, sub, sum } from '../decimal.js';
 import { dateISO, numOr0, str } from '../parse.js';
 import { MetricDef, MetricResult } from '../registry.js';
 import { CalcContext, DatasetKind, RawRow } from '../types.js';
@@ -20,16 +20,17 @@ function bankBalances(ctx: CalcContext): Map<string, { balance: Decimal; rowIds:
     arr.push(r);
     byAlias.set(alias, arr);
   }
-  // 계좌 마스터 기초잔액.
+  // 계좌 마스터 기초잔액. 거래가 없는 계좌도 기초잔액으로 포함한다.
   const masterOpening = new Map<string, Decimal>();
   for (const m of ctx.rows(DatasetKind.BANK_ACCOUNT_MASTER)) {
     masterOpening.set(str(m, 'accountAlias') || str(m, 'alias'), numOr0(m, 'openingBalance'));
   }
 
   const result = new Map<string, { balance: Decimal; rowIds: string[] }>();
-  // 결정론: alias 정렬 후 처리.
-  for (const alias of [...byAlias.keys()].sort()) {
-    const txns = byAlias.get(alias)!;
+  // 마스터 계좌 ∪ 거래 발생 계좌. 결정론: alias 정렬 후 처리.
+  const allAliases = new Set<string>([...masterOpening.keys(), ...byAlias.keys()]);
+  for (const alias of [...allAliases].sort()) {
+    const txns = byAlias.get(alias) ?? [];
     const opening = masterOpening.get(alias) ?? dec(0);
     const net = sum(txns.map((t) => sub(numOr0(t, 'depositAmt'), numOr0(t, 'withdrawalAmt'))));
     const balance = add(opening, net);
@@ -218,6 +219,67 @@ export const forecastMinBalance: MetricDef = {
   },
 };
 
+/** 차입여력 = 당좌·마이너스 한도 총합(MVP: 미사용 가정). */
+function creditHeadroom(ctx: CalcContext): Decimal {
+  return sum(ctx.rows(DatasetKind.BANK_ACCOUNT_MASTER).map((m) => numOr0(m, 'overdraftLimit')));
+}
+
+/** 자금 데이터(계좌·거래·스케줄) 존재 여부 — 없으면 부족 분석 생략. */
+function hasCashData(ctx: CalcContext): boolean {
+  return (
+    ctx.rows(DatasetKind.BANK_ACCOUNT_MASTER).length > 0 ||
+    ctx.rows(DatasetKind.BANK_TRANSACTIONS).length > 0 ||
+    ctx.rows(DatasetKind.CASHFLOW_SCHEDULE).length > 0
+  );
+}
+
+/** 예측 구간 최저 잔액(부족분 산정용). */
+function minBalanceOf(ctx: CalcContext): Decimal | null {
+  const { series } = projection(ctx);
+  if (series.length === 0) return null;
+  return series.reduce<Decimal>((m, p) => (p.balance.lessThan(m) ? p.balance : m), series[0]!.balance);
+}
+
+/** cash.credit.headroom — 차입여력(당좌·마이너스 한도). */
+export const creditHeadroomMetric: MetricDef = {
+  name: 'credit.headroom',
+  label: '차입여력(당좌·마이너스 한도)',
+  unit: 'KRW',
+  compute(ctx) {
+    if (!hasCashData(ctx)) return null;
+    return { value: moneyString(creditHeadroom(ctx)), unit: 'KRW', formula: 'Σ overdraftLimit' };
+  },
+};
+
+/** cash.shortfall.amount — 안전선 대비 예측 자금부족분. */
+export const shortfallAmount: MetricDef = {
+  name: 'shortfall.amount',
+  label: '예측 자금부족분(안전선 대비)',
+  unit: 'KRW',
+  compute(ctx) {
+    const min = minBalanceOf(ctx);
+    if (min === null || !hasCashData(ctx)) return null;
+    const safety = dec(ctx.thresholds.liquiditySafetyBalance);
+    const sf = max([sub(safety, min), 0]) ?? dec(0);
+    return { value: moneyString(sf), unit: 'KRW', formula: 'max(안전선 − 예측최저, 0)' };
+  },
+};
+
+/** cash.shortfall.after_credit — 차입여력 차감 후 순부족. */
+export const shortfallAfterCredit: MetricDef = {
+  name: 'shortfall.after_credit',
+  label: '한도 차감 후 순부족',
+  unit: 'KRW',
+  compute(ctx) {
+    const min = minBalanceOf(ctx);
+    if (min === null || !hasCashData(ctx)) return null;
+    const safety = dec(ctx.thresholds.liquiditySafetyBalance);
+    const sf = max([sub(safety, min), 0]) ?? dec(0);
+    const net = max([sub(sf, creditHeadroom(ctx)), 0]) ?? dec(0);
+    return { value: moneyString(net), unit: 'KRW', formula: 'max(부족분 − 차입여력, 0)' };
+  },
+};
+
 /** alias/날짜를 metricId-안전 슬러그로. 한글 보존, 공백/특수문자만 치환. */
 function slug(s: string): string {
   return s.replace(/\s+/g, '_').replace(/[^0-9A-Za-z가-힣_.-]/g, '');
@@ -231,6 +293,9 @@ export const CASH_METRICS: MetricDef[] = [
   available,
   forecastConfirmed,
   forecastMinBalance,
+  creditHeadroomMetric,
+  shortfallAmount,
+  shortfallAfterCredit,
   ...AR_METRICS,
 ];
 

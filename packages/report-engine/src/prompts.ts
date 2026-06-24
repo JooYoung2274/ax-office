@@ -76,13 +76,23 @@ export const OUTPUT_SCHEMA_DESCRIPTION = `너는 아래 JSON 스키마에 정확
   "dataCaveats": [string, ...]       // 데이터 한계·누락. validationSummary의 warning 반영.
 }`;
 
-/** (A) 자금일보·현금흐름·유동성 경보 리포트용 도메인 헤더(고정). */
-export const CASH_DOMAIN_HEADER = `[작업: 자금일보 / 현금흐름 / 유동성 경보 리포트]
-입력 CRO는 일별 현금흐름과 유동성 지표를 담는다(domain: cash).
-- flags[]의 유동성 경보를 우선순위 높은 finding으로 다룬다.
-- 예측 최저잔액·버퍼일수는 projection 성격이므로 observation에 "예측치"임을 명시한다.
-- 경보가 가리키는 안전한도 대비 부족분을 CRO 값 인용으로 설명한다.
-- 권고는 "결제 일정 조정", "단기차입 검토" 등 실행 가능 수준으로 적되 금액 단정은 하지 않는다.`;
+/** (A) 자금일보·현금흐름·유동성·자금부족 대응·매출채권 회수 리포트용 도메인 헤더(고정). */
+export const CASH_DOMAIN_HEADER = `[작업: 자금일보 / 현금흐름 / 유동성·자금부족 대응 / 매출채권 회수 리포트]
+입력 CRO는 일별 현금흐름·유동성·차입여력·매출채권(AR) 지표를 담는다(domain: cash).
+
+[우선순위] flags[]를 심각도 순(FATAL=위험 > WARN=주의)으로 finding화한다. 특히:
+- shortfall_exceeds_credit(차입여력으로도 못 메우는 순부족)는 가장 시급한 finding으로 최상단에 둔다.
+- min_balance_below_threshold(안전선 하회), ar_long_overdue(장기연체·대손위험), ar_concentration(거래처 집중)을 뒤이어 다룬다.
+
+[자금부족 대응 — 실행 가능한 권고]
+- 부족 시점·부족분은 credit.headroom(차입여력) 대비로 설명한다: "한도로 커버 가능한지 / 순부족이 얼마인지"를 CRO 값 인용으로.
+- 권고는 구체 옵션으로: ①연체 거래처 수금 독촉 ②지급 일정 연기 ③당좌·마이너스 한도 활용 ④추가 단기차입. 금액·실행은 단정하지 말고 검토 대상으로 제시한다.
+
+[매출채권 ↔ 유동성 연결]
+- 자금부족의 원인이 매출채권 회수 지연일 수 있음을 가설로 연결한다(ar_long_overdue·ar_concentration finding과 유동성 finding을 교차 인용).
+- 연체·집중 거래처는 회수 우선순위·대손 위험 관점에서 확인 포인트로 제시한다.
+
+[공통] 예측 최저잔액·버퍼는 projection이므로 "예측치"임을 명시. 새 숫자 계산 금지(CRO 값만 인용). 최종 자금 의사결정은 사람이 한다.`;
 
 /** (B) 월 결산·이상 분개/계정 대사 리포트용 도메인 헤더(고정). */
 export const CLOSING_DOMAIN_HEADER = `[작업: 월 결산 / 이상 분개 / 계정 대사 리포트]

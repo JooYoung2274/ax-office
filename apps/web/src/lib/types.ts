@@ -176,6 +176,14 @@ export interface CashDailySummary {
     cumulative: string;
     flag?: string;
   }[];
+  /** 자금부족 대응 — 부족분>0일 때만. */
+  shortfall?: {
+    amount: string;
+    afterCredit: string;
+    headroom: string;
+    date?: string;
+    covered: boolean;
+  };
   /** 매출채권 회수(AR aging) — 업로드 시에만. */
   ar?: {
     total: string;

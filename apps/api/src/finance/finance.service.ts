@@ -144,6 +144,29 @@ export class FinanceService {
     // 매출채권 회수(AR aging) — 있으면 섹션 추가.
     const ar = await this.buildAr(cro);
 
+    // 자금부족 대응 — 부족분 > 0일 때만. 부족 시점은 예측 시계열에서 안전선 첫 하회일.
+    const num = (s: string | undefined) => Number(String(s ?? '').replace(/[^0-9.-]/g, '')) || 0;
+    const sfAmount = byName('shortfall.amount')?.value;
+    let shortfall: {
+      amount: string;
+      afterCredit: string;
+      headroom: string;
+      date?: string;
+      covered: boolean;
+    } | undefined;
+    if (sfAmount && num(sfAmount) > 0) {
+      const safety = num(safetyLine);
+      const firstBelow = forecast.find((p) => num(p.balance) < safety)?.date;
+      const afterCredit = byName('shortfall.after_credit')?.value ?? '0';
+      shortfall = {
+        amount: sfAmount,
+        afterCredit,
+        headroom: byName('credit.headroom')?.value ?? '0',
+        date: firstBelow,
+        covered: num(afterCredit) <= 0,
+      };
+    }
+
     return {
       asOfDate: cro.period,
       kpis,
@@ -152,6 +175,7 @@ export class FinanceService {
       alerts,
       dailyRows,
       ar,
+      shortfall,
     };
   }
 

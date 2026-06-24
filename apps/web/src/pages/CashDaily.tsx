@@ -107,6 +107,49 @@ export function CashDaily() {
         </div>
       </section>
 
+      {/* ── 자금 부족 대응 ──────────────────────────────────── */}
+      {d.shortfall && (
+        <section className="section">
+          <div className="section-head">
+            <div className="head-left">
+              <h2>자금 부족 대응</h2>
+              <CalcBadge />
+            </div>
+            <span className={`badge ${d.shortfall.covered ? 'badge-draft' : 'badge-blocked'}`}>
+              <span className="dot" />
+              {d.shortfall.covered ? '당좌한도로 커버 가능' : '추가 조치 필요'}
+            </span>
+          </div>
+          <div className="block-figures" style={{ borderBottom: d.shortfall.covered ? 'none' : '1px solid var(--border-line)' }}>
+            <div className="fig">
+              <div className="l">부족 예상 시점</div>
+              <div className="v">{d.shortfall.date ? shortDate(d.shortfall.date) : '—'}</div>
+            </div>
+            <div className="fig">
+              <div className="l">부족분(안전선 대비)</div>
+              <div className="v t-neg">{formatWon(d.shortfall.amount)}</div>
+            </div>
+            <div style={{ color: 'var(--border)', fontSize: 18 }}>−</div>
+            <div className="fig">
+              <div className="l">차입여력(당좌·마이너스 한도)</div>
+              <div className="v">{formatWon(d.shortfall.headroom)}</div>
+            </div>
+            <div style={{ color: 'var(--border)', fontSize: 18 }}>=</div>
+            <div className="fig">
+              <div className="l">한도 차감 후 순부족</div>
+              <div className="v" style={{ color: d.shortfall.covered ? 'var(--confirm)' : 'var(--danger-text)' }}>
+                {d.shortfall.covered ? '커버됨' : formatWon(d.shortfall.afterCredit)}
+              </div>
+            </div>
+          </div>
+          {!d.shortfall.covered && (
+            <p className="muted" style={{ margin: 0, padding: '12px 18px', fontSize: 12.5, lineHeight: 1.6 }}>
+              당좌·마이너스 한도로도 메우지 못하는 순부족이 있습니다. <b style={{ color: 'var(--text-2)' }}>수금 독촉 · 지급 일정 연기 · 추가 차입</b> 등을 검토하세요. (구체적 조치 제안은 AI 리포트 참고)
+            </p>
+          )}
+        </section>
+      )}
+
       {/* ── 유동성 경보 ─────────────────────────────────────── */}
       {d.alerts.length > 0 && (
         <section className="section">
