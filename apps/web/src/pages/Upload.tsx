@@ -5,13 +5,21 @@ import {
   uploadFile,
   getMappingCandidates,
   confirmMapping,
+  getBatchStatus,
   getValidation,
   generateReport,
 } from '../lib/api';
-import type { Domain, Batch, ValidationResponse } from '../lib/types';
-import { EmptyState, ErrorState } from '../components/States';
+import type {
+  Domain,
+  Batch,
+  MappingCandidate,
+  ValidationResponse,
+  ValidationFinding,
+} from '../lib/types';
+import { LoadingState, EmptyState, ErrorState } from '../components/States';
 
-// 업로드 마법사(§2.3b, §2.5): 템플릿 → 파일 업로드·매핑 → 검증결과(FATAL 게이트).
+// 업로드 마법사(§2.3b, §2.5): 템플릿 → 파일 업로드 → 컬럼 매핑·검증(FATAL 게이트).
+// 데이터 배선은 그대로, 디자인 목업(UploadScreen.dc.html) 구조로 재스타일.
 
 type StepNum = 1 | 2 | 3;
 
@@ -20,20 +28,80 @@ const DOMAINS: { key: Domain; label: string; desc: string }[] = [
   { key: 'monthly_close', label: '월 결산', desc: '시산표 · 전표 · 보조원장' },
 ];
 
-function Stepper({ step }: { step: StepNum }) {
-  const labels = ['템플릿', '업로드 · 매핑', '검증 결과'];
+// 자동 매핑 신뢰도 임계값 — 미만이면 "자동 매핑(확인)" 경고.
+const CONFIRM_THRESHOLD = 0.85;
+
+// ───── SVG 아이콘(인라인, JSX-safe) ─────
+function IcCheck({ size = 14 }: { size?: number }) {
   return (
-    <div className="stepper">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}>
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+function IcWarnTri({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M12 9v4M12 17h.01" />
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+    </svg>
+  );
+}
+function IcShield({ size = 11 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+      <path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+function IcAlertCircle({ size = 17 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+      <path d="M12 8v5M12 17h.01" />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  );
+}
+function IcUpload({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+    </svg>
+  );
+}
+function IcLock({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+function IcInfo({ size = 11 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5M12 16h.01" />
+    </svg>
+  );
+}
+
+// ───── 3단계 인디케이터 ─────
+function Steps({ step }: { step: StepNum }) {
+  const labels = ['템플릿 다운로드', '파일 업로드', '컬럼 매핑 · 검증'];
+  return (
+    <div className="steps">
       {labels.map((l, i) => {
         const n = (i + 1) as StepNum;
-        const cls = n < step ? 'done' : n === step ? 'active' : '';
+        const cls = n < step ? 'done' : n === step ? 'active' : 'todo';
         return (
-          <div key={l} style={{ display: 'flex', alignItems: 'center' }}>
+          <div key={l} style={{ display: 'contents' }}>
             <div className={`step ${cls}`}>
-              <span className="n">{n < step ? '✓' : n}</span>
-              {l}
+              <span className="num">{n < step ? <IcCheck /> : n}</span>
+              <span>{`${'①②③'[i]} ${l}`}</span>
             </div>
-            {i < labels.length - 1 && <span className={`step-line ${n < step ? 'done' : ''}`} />}
+            {i < labels.length - 1 && <span className="step-line" />}
           </div>
         );
       })}
@@ -49,23 +117,10 @@ export function UploadWizard() {
   const [mapping, setMapping] = useState<Record<string, string>>({});
 
   return (
-    <>
-      <div className="page-head">
-        <div className="titles">
-          <h1>업로드 마법사</h1>
-          <span className="subtitle">엑셀/CSV 업로드 → 결정론 검증 → (통과 시) AI 리포트 생성</span>
-        </div>
-      </div>
+    <div className="page">
+      <Steps step={step} />
 
-      <Stepper step={step} />
-
-      {step === 1 && (
-        <Step1Template
-          domain={domain}
-          setDomain={setDomain}
-          onNext={() => setStep(2)}
-        />
-      )}
+      {step === 1 && <Step1Template domain={domain} setDomain={setDomain} onNext={() => setStep(2)} />}
       {step === 2 && (
         <Step2Upload
           domain={domain}
@@ -79,12 +134,18 @@ export function UploadWizard() {
           onNext={() => setStep(3)}
         />
       )}
-      {step === 3 && batch && <Step3Validation batch={batch} onBack={() => setStep(2)} />}
-    </>
+      {step === 3 && batch && (
+        <Step3Validation
+          batch={batch}
+          mapping={mapping}
+          onBack={() => setStep(2)}
+        />
+      )}
+    </div>
   );
 }
 
-// ───── Step 1 ─────
+// ───── Step 1: 분석 종류 선택 · 템플릿 다운로드 ─────
 function Step1Template({
   domain,
   setDomain,
@@ -95,22 +156,31 @@ function Step1Template({
   onNext: () => void;
 }) {
   const q = useQuery({ queryKey: ['templates', domain], queryFn: () => listTemplates(domain) });
+  const template = q.data?.[0];
 
   return (
-    <div className="card card-pad stack">
-      <h2>1. 분석 종류 선택 · 템플릿 다운로드</h2>
-      <div className="grid grid-2">
-        {DOMAINS.map((d) => (
-          <label
-            key={d.key}
-            className="card card-pad"
-            style={{
-              cursor: 'pointer',
-              borderColor: domain === d.key ? 'var(--brand)' : undefined,
-              boxShadow: domain === d.key ? '0 0 0 3px var(--brand-50)' : undefined,
-            }}
-          >
-            <div className="row">
+    <section className="section">
+      <div className="section-head">
+        <div className="head-left">
+          <h2>① 분석 종류 선택 · 표준 템플릿 다운로드</h2>
+        </div>
+      </div>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="grid-2">
+          {DOMAINS.map((d) => (
+            <label
+              key={d.key}
+              className="card"
+              style={{
+                cursor: 'pointer',
+                padding: '13px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 11,
+                borderColor: domain === d.key ? 'var(--indigo)' : undefined,
+                boxShadow: domain === d.key ? '0 0 0 3px var(--indigo-bg)' : undefined,
+              }}
+            >
               <input
                 type="radio"
                 name="domain"
@@ -119,25 +189,38 @@ function Step1Template({
               />
               <div>
                 <div style={{ fontWeight: 700 }}>{d.label}</div>
-                <div className="muted" style={{ fontSize: 12.5 }}>{d.desc}</div>
+                <div className="muted" style={{ fontSize: 12 }}>{d.desc}</div>
               </div>
-            </div>
-          </label>
-        ))}
-      </div>
-
-      <div className="card card-pad" style={{ background: 'var(--surface-2)' }}>
-        <div className="card-title">
-          <h3>표준 템플릿</h3>
-          {q.data?.[0] && (
-            <button className="btn btn-sm">표준 엑셀 템플릿 다운로드 ⬇</button>
-          )}
+            </label>
+          ))}
         </div>
-        {q.isError ? (
-          <p className="muted">템플릿 목록을 불러오지 못했습니다. 기존 사내 양식을 그대로 업로드할 수도 있습니다.</p>
-        ) : q.data && q.data.length > 0 ? (
-          <div className="table-wrap">
-            <table className="table">
+
+        <div className="section" style={{ background: 'var(--surface)' }}>
+          <div className="section-head">
+            <div className="head-left">
+              <h2 style={{ fontSize: 13 }}>표준 템플릿</h2>
+              <span className="cro-chip">
+                <IcShield />
+                CRO 표준 스키마
+              </span>
+            </div>
+            {template && (
+              <button className="btn btn-sm">
+                <IcUpload size={13} />
+                표준 엑셀 템플릿 다운로드
+              </button>
+            )}
+          </div>
+          {q.isLoading ? (
+            <div style={{ padding: 16 }}>
+              <LoadingState label="템플릿 목록을 불러오는 중…" />
+            </div>
+          ) : q.isError ? (
+            <p className="muted" style={{ padding: 16 }}>
+              템플릿 목록을 불러오지 못했습니다. 기존 사내 양식을 그대로 업로드할 수도 있습니다.
+            </p>
+          ) : template && template.requiredColumns.length > 0 ? (
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>표준 필드</th>
@@ -147,34 +230,41 @@ function Step1Template({
                 </tr>
               </thead>
               <tbody>
-                {q.data[0].requiredColumns.map((c) => (
+                {template.requiredColumns.map((c) => (
                   <tr key={c.field}>
-                    <td className="mono">{c.field}</td>
+                    <td className="t-code">{c.field}</td>
                     <td>{c.label}</td>
-                    <td>{c.required ? <span className="tag-fatal">필수</span> : <span className="dim">선택</span>}</td>
-                    <td className="dim">{c.example ?? '—'}</td>
+                    <td>
+                      {c.required ? (
+                        <span className="tag tag-red">필수</span>
+                      ) : (
+                        <span className="tag tag-gray">선택</span>
+                      )}
+                    </td>
+                    <td className="muted">{c.example ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <p className="muted">
-            템플릿 정보가 없습니다. "기존 사내 양식 그대로 업로드"를 선택하면 다음 단계에서 컬럼을 매핑할 수 있습니다.
-          </p>
-        )}
+          ) : (
+            <p className="muted" style={{ padding: 16 }}>
+              템플릿 정보가 없습니다. 기존 사내 양식을 그대로 업로드하면 다음 단계에서 컬럼을 매핑할 수 있습니다.
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="row" style={{ justifyContent: 'flex-end' }}>
+      <div className="action-bar" style={{ position: 'static', borderTop: '1px solid var(--border-soft)' }}>
+        <span className="muted" style={{ fontSize: 12 }}>분석 종류와 템플릿을 확인했으면 다음 단계로 진행하세요.</span>
         <button className="btn btn-primary" onClick={onNext}>
           다음 · 파일 업로드 →
         </button>
       </div>
-    </div>
+    </section>
   );
 }
 
-// ───── Step 2 ─────
+// ───── Step 2: 파일 업로드 ─────
 function Step2Upload({
   domain,
   file,
@@ -203,6 +293,18 @@ function Step2Upload({
     onSuccess: (b) => setBatch(b),
   });
 
+  // 배치 상태 폴링(파싱 진행 → MAPPED/CALCULATED 등).
+  const status = useQuery({
+    queryKey: ['batch-status', batch?.batchId],
+    queryFn: () => getBatchStatus(batch!.batchId),
+    enabled: !!batch,
+    refetchInterval: (query) => {
+      const s = query.state.data?.status;
+      return s === 'RECEIVED' || s === 'PARSING' ? 1500 : false;
+    },
+  });
+  const liveBatch = status.data ?? batch;
+
   const candidates = useQuery({
     queryKey: ['mapping', batch?.batchId],
     queryFn: () => getMappingCandidates(batch!.batchId),
@@ -214,145 +316,218 @@ function Step2Upload({
     onSuccess: () => onNext(),
   });
 
+  function startUpload(f: File) {
+    setFile(f);
+    upload.mutate(f);
+  }
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     const f = e.dataTransfer.files?.[0];
-    if (f) {
-      setFile(f);
-      upload.mutate(f);
-    }
+    if (f) startUpload(f);
   }
 
   const unmappedRequired = useMemo(
-    () => (candidates.data ?? []).filter((c) => c.required && !mapping[c.sourceColumn] && !c.suggestedField),
+    () =>
+      (candidates.data ?? []).filter(
+        (c) => c.required && !(mapping[c.sourceColumn] ?? c.suggestedField),
+      ),
     [candidates.data, mapping],
   );
 
   return (
-    <div className="stack">
-      <div className="card card-pad">
-        <h2>2. 파일 업로드</h2>
-        <div
-          className={`dropzone${file ? ' has-file' : ''}`}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={onDrop}
-          style={{ marginTop: 12 }}
-        >
-          {file ? (
-            <>
-              <div style={{ fontWeight: 700 }}>✓ {file.name}</div>
-              <div className="muted">{(file.size / 1024).toFixed(0)} KB</div>
-              {upload.isPending && (
-                <div className="muted" style={{ marginTop: 6 }}>업로드 중… {progress}%</div>
-              )}
-              {batch && (
-                <div className="muted" style={{ marginTop: 6 }}>
-                  배치 {batch.batchId} · {batch.status}
-                  {batch.detectedSheets?.length ? ` · 시트 ${batch.detectedSheets.join(', ')}` : ''}
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="emoji" style={{ fontSize: 28 }}>📄</div>
-              <div style={{ fontWeight: 600 }}>여기에 엑셀/CSV 파일을 끌어다 놓으세요</div>
-              <div className="muted" style={{ marginTop: 8 }}>
-                <label className="btn btn-sm" style={{ cursor: 'pointer' }}>
-                  파일 선택
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    hidden
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) {
-                        setFile(f);
-                        upload.mutate(f);
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-            </>
+    <>
+      <section className="section">
+        <div className="section-head">
+          <div className="head-left">
+            <h2>② 파일 업로드</h2>
+          </div>
+          {liveBatch && (
+            <span className="meta">
+              배치 {liveBatch.batchId} · {liveBatch.status}
+              {liveBatch.detectedSheets?.length ? ` · 시트 ${liveBatch.detectedSheets.join(', ')}` : ''}
+            </span>
           )}
         </div>
-        {upload.isError && <ErrorState error={upload.error} />}
-      </div>
+        <div style={{ padding: 16 }}>
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={onDrop}
+            style={{
+              border: `1.5px dashed ${file ? 'var(--confirm-border)' : 'var(--input-border)'}`,
+              borderRadius: 'var(--radius)',
+              background: file ? 'var(--confirm-bg)' : '#fafbfd',
+              padding: '28px 18px',
+              textAlign: 'center',
+            }}
+          >
+            {file ? (
+              <>
+                <div style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--confirm-strong)' }}>
+                  <IcCheck size={16} /> {file.name}
+                </div>
+                <div className="muted tnum" style={{ marginTop: 4 }}>{(file.size / 1024).toFixed(0)} KB</div>
+                {upload.isPending && (
+                  <div className="muted tnum" style={{ marginTop: 6 }}>업로드 중… {progress}%</div>
+                )}
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 26, color: 'var(--faint)' }}>
+                  <IcUpload size={30} />
+                </div>
+                <div style={{ fontWeight: 600, marginTop: 8 }}>여기에 엑셀/CSV 파일을 끌어다 놓으세요</div>
+                <div style={{ marginTop: 10 }}>
+                  <label className="btn btn-sm" style={{ cursor: 'pointer' }}>
+                    파일 선택
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      hidden
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) startUpload(f);
+                      }}
+                    />
+                  </label>
+                </div>
+              </>
+            )}
+          </div>
+          {upload.isError && <div style={{ marginTop: 12 }}><ErrorState error={upload.error} /></div>}
+        </div>
+      </section>
 
       {/* 컬럼 매핑 */}
       {batch && (
-        <div className="card card-pad">
-          <div className="card-title">
-            <h2>컬럼 매핑</h2>
-            {unmappedRequired.length > 0 && (
-              <span className="badge badge-rejected"><span className="dot" />미매핑 필수 {unmappedRequired.length}</span>
+        <section className="section">
+          <div className="section-head">
+            <div className="head-left">
+              <h2>컬럼 매핑</h2>
+            </div>
+            {unmappedRequired.length > 0 ? (
+              <span className="tag tag-red">미매핑 필수 {unmappedRequired.length}</span>
+            ) : (
+              <span className="meta">
+                {(candidates.data?.length ?? 0)}개 컬럼
+              </span>
             )}
           </div>
-          {candidates.isLoading && <p className="muted">매핑 후보를 분석 중…</p>}
-          {candidates.isError && (
-            <p className="muted">매핑 후보를 불러오지 못했습니다. 백엔드 연결을 확인하세요.</p>
-          )}
-          {candidates.data && (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>우리 컬럼</th>
-                    <th>표준 필드</th>
-                    <th>신뢰도</th>
-                    <th>상태</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {candidates.data.map((c) => {
-                    const val = mapping[c.sourceColumn] ?? c.suggestedField ?? '';
-                    const missing = c.required && !val;
-                    return (
-                      <tr key={c.sourceColumn}>
-                        <td className="mono">{c.sourceColumn}</td>
-                        <td>
-                          <input
-                            className="mono"
-                            style={{ padding: '4px 8px', border: '1px solid var(--border-strong)', borderRadius: 6, width: '100%' }}
-                            value={val}
-                            placeholder="표준 필드"
-                            onChange={(e) => setMapping({ ...mapping, [c.sourceColumn]: e.target.value })}
-                          />
-                        </td>
-                        <td className="dim">{(c.confidence * 100).toFixed(0)}%</td>
-                        <td>
-                          {missing ? (
-                            <span className="tag-fatal">⚠ 미매핑 (필수)</span>
-                          ) : (
-                            <span style={{ color: 'var(--approved)' }}>✓</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          {candidates.isLoading ? (
+            <div style={{ padding: 16 }}>
+              <LoadingState label="매핑 후보를 분석 중…" />
             </div>
-          )}
-        </div>
+          ) : candidates.isError ? (
+            <div style={{ padding: 16 }}>
+              <ErrorState error={candidates.error} onRetry={() => candidates.refetch()} />
+            </div>
+          ) : candidates.data ? (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>소스 컬럼</th>
+                  <th>표준 필드</th>
+                  <th>신뢰도</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {candidates.data.map((c) => (
+                  <MappingRow
+                    key={c.sourceColumn}
+                    c={c}
+                    value={mapping[c.sourceColumn] ?? c.suggestedField ?? ''}
+                    onChange={(v) => setMapping({ ...mapping, [c.sourceColumn]: v })}
+                  />
+                ))}
+              </tbody>
+            </table>
+          ) : null}
+        </section>
       )}
 
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <button className="btn" onClick={onBack}>← 이전</button>
-        <button
-          className="btn btn-primary"
-          disabled={!batch || unmappedRequired.length > 0 || confirm.isPending}
-          onClick={() => confirm.mutate()}
-        >
-          {confirm.isPending ? '계산·검증 실행 중…' : '매핑 확정 · 검증 실행 →'}
-        </button>
+      <div className="action-bar">
+        <button className="btn" onClick={onBack}>← 이전 단계</button>
+        <div className="grp">
+          <button
+            className="btn btn-primary"
+            disabled={!batch || unmappedRequired.length > 0 || confirm.isPending}
+            onClick={() => confirm.mutate()}
+          >
+            <IcShield size={14} />
+            {confirm.isPending ? '계산 · 검증 실행 중…' : '매핑 확정 · 검증 실행 →'}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-// ───── Step 3: 검증 결과 + FATAL 게이트 ─────
-function Step3Validation({ batch, onBack }: { batch: Batch; onBack: () => void }) {
+function MappingRow({
+  c,
+  value,
+  onChange,
+}: {
+  c: MappingCandidate;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const missing = c.required && !value;
+  const lowConfidence = !!value && c.confidence < CONFIRM_THRESHOLD;
+  return (
+    <tr style={lowConfidence ? { background: '#fffdf8' } : undefined}>
+      <td>{c.sourceColumn}</td>
+      <td>
+        <input
+          value={value}
+          placeholder="표준 필드"
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '4px 8px',
+            border: '1px solid var(--input-border)',
+            borderRadius: 6,
+            fontFamily: 'inherit',
+            fontSize: 12.5,
+            color: 'var(--indigo)',
+            fontWeight: 500,
+          }}
+        />
+      </td>
+      <td className="num tnum muted">{(c.confidence * 100).toFixed(0)}%</td>
+      <td>
+        {missing ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--danger-text)', fontWeight: 600 }}>
+            <IcWarnTri />
+            미매핑 (필수)
+          </span>
+        ) : lowConfidence ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--warn-text)', fontWeight: 600 }}>
+            <IcWarnTri />
+            자동 매핑 (확인)
+          </span>
+        ) : (
+          <span style={{ color: 'var(--confirm)', fontWeight: 600 }}>매핑됨</span>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+// ───── Step 3: 컬럼 매핑·검증 결과 + FATAL 게이트 ─────
+function Step3Validation({
+  batch,
+  mapping,
+  onBack,
+}: {
+  batch: Batch;
+  mapping: Record<string, string>;
+  onBack: () => void;
+}) {
+  const candidates = useQuery({
+    queryKey: ['mapping', batch.batchId],
+    queryFn: () => getMappingCandidates(batch.batchId),
+  });
+
   const q = useQuery({
     queryKey: ['validation', batch.batchId],
     queryFn: () => getValidation(batch.batchId),
@@ -361,142 +536,275 @@ function Step3Validation({ batch, onBack }: { batch: Batch; onBack: () => void }
   const gen = useMutation({ mutationFn: () => generateReport(batch.batchId) });
 
   if (q.isLoading) {
-    return (
-      <div className="card card-pad">
-        <p className="muted">검증 결과를 불러오는 중…</p>
-      </div>
-    );
+    return <LoadingState label="검증 결과를 불러오는 중…" />;
   }
   if (q.isError) {
-    return (
-      <div className="card card-pad">
-        <ErrorState error={q.error} onRetry={() => q.refetch()} />
-      </div>
-    );
+    return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
   }
 
   const v: ValidationResponse | undefined = q.data;
   if (!v) {
     return (
-      <div className="card card-pad">
-        <EmptyState title="검증 결과가 아직 없습니다" description="계산·검증 잡이 완료되면 표시됩니다." />
-      </div>
+      <EmptyState title="검증 결과가 아직 없습니다" description="계산·검증 잡이 완료되면 표시됩니다." />
     );
   }
 
+  // FATAL 게이트: FATAL 존재 시 AI 리포트 생성 차단(버튼 비활성 + 사유).
   const blocked = v.blockedAI || v.fatalCount > 0;
-  const hasWarn = v.warnCount > 0;
+  const passCount = Math.max(0, (batch.rowCount ?? 0) - v.fatalCount - v.warnCount);
 
   return (
-    <div className="stack">
-      <div className="card card-pad">
-        <h2>3. 검증 결과</h2>
-        <div className="row" style={{ gap: 16, marginTop: 8 }}>
-          <span className="badge badge-rejected"><span className="dot" />치명 {v.fatalCount}</span>
-          <span className="badge badge-warn"><span className="dot" />경고 {v.warnCount}</span>
-          <span className="badge badge-approved"><span className="dot" />통과</span>
-        </div>
-      </div>
-
-      {/* FATAL 차단 배너 — AI 리포트 생성 차단 게이트(§2.5) */}
-      {blocked && (
-        <div className="banner fatal">
-          <span className="b-icon">🔴</span>
-          <div>
-            <div className="b-title">검증 실패 — AI 리포트 생성이 차단되었습니다</div>
-            <div className="b-text">
-              데이터에 치명 오류가 있어 AI 분석을 시작할 수 없습니다. 오류를 수정한 뒤 재업로드하세요.
-              (버튼 비활성 + 서버 API 거부의 이중 차단)
+    <>
+      <div className="grid-2">
+        {/* 컬럼 매핑 */}
+        <section className="section">
+          <div className="section-head">
+            <div className="head-left">
+              <h2>컬럼 매핑</h2>
             </div>
+            <span className="meta">
+              {(candidates.data?.length ?? 0)}개 컬럼
+              {batch.rowCount != null ? ` · ${batch.rowCount.toLocaleString()} 행` : ''}
+            </span>
           </div>
-        </div>
-      )}
-      {!blocked && hasWarn && (
-        <div className="banner warn">
-          <span className="b-icon">🟡</span>
-          <div>
-            <div className="b-title">경고 {v.warnCount}건 — 검토 후 진행 가능</div>
-            <div className="b-text">"경고를 무시하고 진행했음"이 감사 로그에 기록됩니다.</div>
-          </div>
-        </div>
-      )}
-
-      {/* 오류 상세 — 규칙ID + 셀 좌표 + 기대/실제 */}
-      <div className="card card-pad">
-        <div className="card-title">
-          <h3>오류 · 경고 상세</h3>
-        </div>
-        {v.findings.length === 0 ? (
-          <p className="muted">검출된 이슈가 없습니다.</p>
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>심각도</th>
-                  <th>규칙</th>
-                  <th>위치</th>
-                  <th>내용</th>
-                  <th>기대 / 실제</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {v.findings.map((f, i) => (
-                  <tr key={i}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>소스 컬럼</th>
+                <th>표준 필드</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(candidates.data ?? []).map((c) => {
+                const field = mapping[c.sourceColumn] ?? c.suggestedField ?? '';
+                const lowConfidence = !!field && c.confidence < CONFIRM_THRESHOLD;
+                return (
+                  <tr key={c.sourceColumn} style={lowConfidence ? { background: '#fffdf8' } : undefined}>
+                    <td>{c.sourceColumn}</td>
+                    <td style={{ color: 'var(--indigo)', fontWeight: 500 }}>{field || '—'}</td>
                     <td>
-                      {f.severity === 'FATAL' ? (
-                        <span className="tag-fatal">🔴 FATAL</span>
-                      ) : f.severity === 'WARN' ? (
-                        <span className="tag-warn">🟡 WARN</span>
+                      {lowConfidence ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--warn-text)', fontWeight: 600 }}>
+                          <IcWarnTri />
+                          자동 매핑 (확인)
+                        </span>
                       ) : (
-                        <span className="dim">INFO</span>
+                        <span style={{ color: 'var(--confirm)', fontWeight: 600 }}>매핑됨</span>
                       )}
                     </td>
-                    <td className="mono">{f.ruleId}</td>
-                    <td className="mono dim">{f.cellRef ?? (f.rowIndex != null ? `행 ${f.rowIndex}` : '—')}</td>
-                    <td>{f.message}</td>
-                    <td className="dim">
-                      {f.expected != null || f.actual != null
-                        ? `${f.expected ?? '—'} / ${f.actual ?? '—'}`
-                        : '—'}
-                    </td>
-                    <td>
-                      <button className="btn btn-sm">원본 셀 보기</button>
-                    </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
+
+        {/* 검증 결과 요약 */}
+        <section className="section">
+          <div className="section-head">
+            <div className="head-left">
+              <h2>검증 결과</h2>
+              <span className="cro-chip">
+                <IcShield />
+                CRO 결정론적 검증
+              </span>
+            </div>
           </div>
-        )}
+          <div className="grid-3" style={{ gap: 1, background: 'var(--border-soft)' }}>
+            <CountCell label="통과" value={passCount} color="var(--confirm)" />
+            <CountCell label="경고" value={v.warnCount} color="var(--warn-text)" />
+            <CountCell label="치명(FATAL)" value={v.fatalCount} color="var(--danger-text)" />
+          </div>
+        </section>
       </div>
 
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <button className="btn" onClick={onBack}>← 수정 후 재업로드</button>
-        {/* AI 리포트 생성 — FATAL 존재 시 물리적 비활성 + 사유 툴팁 */}
-        {blocked ? (
-          <span className="tip" data-tip="검증 실패(FATAL) 상태에서는 AI 리포트를 생성할 수 없습니다">
-            <button className="btn btn-primary" disabled>
-              AI 리포트 생성 ▶
-            </button>
-          </span>
-        ) : (
-          <button className="btn btn-primary" disabled={gen.isPending} onClick={() => gen.mutate()}>
-            {gen.isPending ? 'Draft 생성 중…' : 'AI 리포트 생성 (Draft) ▶'}
+      {/* BLOCK PANEL — 검증 차단 게이트(FATAL 존재 시) */}
+      {blocked && <BlockPanel v={v} />}
+
+      {/* WARN만 있는 경우 검토 후 진행 가능 안내 */}
+      {!blocked && v.warnCount > 0 && (
+        <section className="section">
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px 18px', background: '#fffdf8' }}>
+            <span style={{ color: 'var(--warn)', marginTop: 1 }}>
+              <IcWarnTri size={18} />
+            </span>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--warn-text)' }}>경고 {v.warnCount}건 — 검토 후 진행 가능</div>
+              <div className="muted" style={{ fontSize: 12.5, marginTop: 2 }}>
+                "경고를 무시하고 진행했음"이 감사 로그에 기록됩니다.
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* sticky action bar */}
+      <div className="action-bar">
+        <button className="btn" onClick={onBack}>← 이전 단계</button>
+        <div className="grp">
+          <button className="btn btn-primary" onClick={onBack}>
+            <IcUpload size={15} />
+            문제 행 수정 후 재업로드
           </button>
-        )}
+          {blocked ? (
+            <div className="btn-stack">
+              <span
+                className="tip"
+                data-tip="결정론적 검증(FATAL)을 통과해야 AI 리포트를 생성할 수 있습니다."
+              >
+                <button className="btn" disabled>
+                  <IcLock />
+                  AI 리포트 생성
+                </button>
+              </span>
+              <span className="btn-note">
+                <IcInfo />
+                검증 실패로 비활성 — FATAL {v.fatalCount}건 해결 필요
+              </span>
+            </div>
+          ) : (
+            <button className="btn btn-primary" disabled={gen.isPending} onClick={() => gen.mutate()}>
+              <IcShield size={15} />
+              {gen.isPending ? 'Draft 생성 중…' : 'AI 리포트 생성 (Draft) ▶'}
+            </button>
+          )}
+        </div>
       </div>
 
       {gen.isSuccess && (
-        <div className="banner info">
-          <span className="b-icon">✅</span>
-          <div>
-            <div className="b-title">Draft 리포트 생성을 시작했습니다</div>
-            <div className="b-text">리포트 화면에서 생성 진행 상황과 근거를 확인하세요.</div>
+        <section className="section">
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 18px', background: 'var(--confirm-bg)' }}>
+            <span style={{ color: 'var(--confirm)' }}><IcCheck size={18} /></span>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--confirm-strong)' }}>Draft 리포트 생성을 시작했습니다</div>
+              <div className="muted" style={{ fontSize: 12.5, marginTop: 2 }}>
+                리포트 화면에서 생성 진행 상황과 근거를 확인하세요.
+              </div>
+            </div>
           </div>
+        </section>
+      )}
+    </>
+  );
+}
+
+function CountCell({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div style={{ background: 'var(--surface)', padding: '13px 14px' }}>
+      <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{label}</div>
+      <div className="tnum" style={{ marginTop: 4, fontSize: 21, fontWeight: 700, color }}>
+        {value.toLocaleString()}
+      </div>
+    </div>
+  );
+}
+
+// 잔액 불일치 금액 파싱 헬퍼 — 숫자만 추출.
+function parseAmount(s?: string): number | null {
+  if (s == null) return null;
+  const cleaned = s.replace(/[^0-9.-]/g, '');
+  if (!cleaned || cleaned === '-' || cleaned === '.') return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
+function BlockPanel({ v }: { v: ValidationResponse }) {
+  // 차변≠대변 figures: 잔액 불일치 규칙(BALANCE)의 expected/actual에서 추출.
+  const balanceFinding = v.findings.find(
+    (f) => f.severity === 'FATAL' && /balance|debit|credit|차대|대차/i.test(`${f.ruleId} ${f.message}`),
+  );
+  const debit = parseAmount(balanceFinding?.expected);
+  const credit = parseAmount(balanceFinding?.actual);
+  const diff = debit != null && credit != null ? Math.abs(debit - credit) : null;
+  const fmt = (n: number) => `₩${n.toLocaleString()}`;
+
+  // 문제 행: FATAL/WARN finding 우선.
+  const problemRows = v.findings.filter((f) => f.severity === 'FATAL' || f.severity === 'WARN');
+
+  return (
+    <section className="block-panel">
+      <div className="block-head">
+        <span className="block-icon">
+          <IcAlertCircle />
+        </span>
+        <div style={{ flex: 1 }}>
+          <h2>검증 실패 — AI 리포트 생성이 차단되었습니다</h2>
+          <p>
+            결정론적 검증을 통과하지 못한 데이터로는 AI 분석을 진행하지 않습니다.
+            {balanceFinding ? ' 차변 합계와 대변 합계가 일치하지 않습니다.' : ''} 문제 행을 수정한 뒤 재업로드해 주세요.
+            (버튼 비활성 + 서버 API 거부의 이중 차단)
+          </p>
+        </div>
+      </div>
+
+      {/* 차변 ≠ 대변 figures (실제 finding 기반) */}
+      {balanceFinding && debit != null && credit != null && (
+        <div className="block-figures">
+          <div className="fig">
+            <div className="l">차변 합계</div>
+            <div className="v">{fmt(debit)}</div>
+          </div>
+          <div style={{ color: '#c4ccd8', fontSize: 18 }}>≠</div>
+          <div className="fig">
+            <div className="l">대변 합계</div>
+            <div className="v">{fmt(credit)}</div>
+          </div>
+          {diff != null && (
+            <>
+              <div style={{ width: 1, height: 30, background: 'var(--border)' }} />
+              <div className="fig">
+                <div className="l">불일치 금액</div>
+                <div className="v t-neg">{fmt(diff)}</div>
+              </div>
+            </>
+          )}
         </div>
       )}
-    </div>
+
+      {/* 문제 행 테이블 */}
+      {problemRows.length > 0 && (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>심각도</th>
+              <th>규칙</th>
+              <th>위치</th>
+              <th>문제</th>
+              <th className="num">기대 / 실제</th>
+            </tr>
+          </thead>
+          <tbody>
+            {problemRows.map((f, i) => (
+              <ProblemRow key={`${f.ruleId}-${i}`} f={f} />
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+function ProblemRow({ f }: { f: ValidationFinding }) {
+  const isFatal = f.severity === 'FATAL';
+  const loc = f.cellRef ?? (f.rowIndex != null ? `행 ${f.rowIndex.toLocaleString()}` : '—');
+  return (
+    <tr>
+      <td>
+        {isFatal ? (
+          <span style={{ color: 'var(--danger-text)', fontWeight: 700 }}>FATAL</span>
+        ) : (
+          <span style={{ color: 'var(--warn-text)', fontWeight: 700 }}>WARN</span>
+        )}
+      </td>
+      <td className="t-code">{f.ruleId}</td>
+      <td className="t-code tnum">{loc}</td>
+      <td style={{ color: '#7c5050' }}>{f.message}</td>
+      <td className="num tnum muted">
+        {f.expected != null || f.actual != null
+          ? `${f.expected ?? '—'} / ${f.actual ?? '—'}`
+          : '—'}
+      </td>
+    </tr>
   );
 }
