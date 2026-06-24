@@ -1,0 +1,446 @@
+// Finance AX MVP — Prisma 데이터 모델 (PRD §3.4)
+// 원본 불변(Immutability) + 검증 게이트(Validation Gate) + 근거 추적(Evidence Ledger) + 단일테넌트 RBAC 골격.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- 테넌시 & 사용자 (단일 테넌트 가정, RBAC 골격) ----------
+model Tenant {
+  id           String        @id @default(cuid())
+  name         String
+  createdAt    DateTime      @default(now())
+  users        User[]
+  uploads      UploadBatch[]
+  accounts     Account[]
+  bankAccounts BankAccount[]
+}
+
+// PRD §2.1 / @axaxax/shared Role: FINANCE_STAFF / FINANCE_APPROVER / ADMIN
+enum Role {
+  FINANCE_STAFF
+  FINANCE_APPROVER
+  ADMIN
+}
+
+model User {
+  id           String        @id @default(cuid())
+  tenantId     String
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  email        String        @unique
+  name         String
+  passwordHash String // bcrypt 해시 (MVP 시드 사용자)
+  role         Role          @default(FINANCE_STAFF)
+  createdAt    DateTime      @default(now())
+  uploads      UploadBatch[]
+  createdReports Report[]    @relation("ReportCreator")
+  approvals    Report[]      @relation("ReportApprover")
+  comments     Comment[]
+
+  @@index([tenantId])
+}
+
+// ---------- 업로드 & 원본 (불변) ----------
+enum TemplateKey {
+  BANK_ACCOUNT_MASTER
+  BANK_TRANSACTION
+  CASHFLOW_SCHEDULE
+  TRIAL_BALANCE
+  JOURNAL_ENTRY
+  SUBLEDGER_AR
+  SUBLEDGER_AP
+  FIXED_ASSET
+  COMPARATIVE_FS
+}
+
+// 업로드 배치 처리 상태 (BullMQ 파이프라인 단계와 1:1)
+enum BatchStatus {
+  RECEIVED
+  PARSED
+  MAPPED
+  VALIDATED
+  BLOCKED // FATAL 검증 → 계산/AI 차단
+  COMMITTED
+  FAILED
+}
+
+model UploadBatch {
+  id           String      @id @default(cuid())
+  tenantId     String
+  tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  uploadedById String
+  uploadedBy   User        @relation(fields: [uploadedById], references: [id])
+  templateKey  TemplateKey
+  domain       SliceType // cash(자금일보) | closing(월결산)
+  fileName     String
+  sourceHash   String // SHA-256 원본 스냅샷 해시
+  storageKey   String // 객체스토리지 원본 위치(MVP: 로컬/논리 키)
+  period       String? // YYYY-MM
+  status       BatchStatus @default(RECEIVED)
+  // 리포트 생명주기(@axaxax/shared ReportStatus): PENDING→CALCULATED→(BLOCKED)→AI_DRAFTING→DRAFT...
+  lifecycle    ReportStatus @default(PENDING)
+  progress     Int         @default(0) // 0~100 파이프라인 진행률
+  error        String?
+  rowCount     Int?
+  parsedAt     DateTime?
+  createdAt    DateTime    @default(now())
+
+  rawDataset  RawDataset?
+  validation  ValidationReport?
+  columnMaps  ColumnMapping[]
+  calcResults CalculationResult[]
+  reports     Report[]
+
+  @@unique([tenantId, sourceHash]) // 동일 파일 중복 차단
+  @@index([tenantId, templateKey, period])
+  @@index([tenantId, status])
+}
+
+model ColumnMapping {
+  id           String      @id @default(cuid())
+  batchId      String
+  batch        UploadBatch @relation(fields: [batchId], references: [id])
+  sourceHeader String // 파일의 원본 헤더
+  targetField  String // 표준 필드 키
+  confidence   Float
+  confirmedBy  String?
+
+  @@index([batchId])
+}
+
+model RawDataset {
+  id        String      @id @default(cuid())
+  batchId   String      @unique
+  batch     UploadBatch @relation(fields: [batchId], references: [id])
+  sheetName String?
+  kind      String // calc-engine DatasetKind (bank_transactions 등)
+  rows      RawRow[]
+  createdAt DateTime    @default(now())
+}
+
+model RawRow {
+  id         String     @id @default(cuid())
+  datasetId  String
+  dataset    RawDataset @relation(fields: [datasetId], references: [id])
+  rowIndex   Int // 원본 행 번호(1-base)
+  raw        Json // 원문 셀 — 무손실
+  normalized Json? // 정규화 결과(표준필드키 → 셀값)
+  cellErrors Json? // 셀 단위 변환오류
+  isExcluded Boolean    @default(false)
+
+  @@index([datasetId, rowIndex])
+}
+
+// ---------- 계정과목 마스터 (표준화) ----------
+enum StatementType {
+  BS
+  IS
+}
+
+model Account {
+  id         String         @id @default(cuid())
+  tenantId   String
+  tenant     Tenant         @relation(fields: [tenantId], references: [id])
+  code       String // 회사 계정코드 (예: 0108)
+  name       String
+  stdCode    String? // 표준계정 매핑 코드
+  statement  StatementType?
+  fsLineItem String? // 매핑된 재무제표 라인
+  normalSide String? // DEBIT/CREDIT
+  isControl  Boolean        @default(false) // 통제계정(AR/AP)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, stdCode])
+}
+
+// ---------- 자금일보 도메인 ----------
+model BankAccount {
+  id             String            @id @default(cuid())
+  tenantId       String
+  tenant         Tenant            @relation(fields: [tenantId], references: [id])
+  alias          String
+  bankName       String
+  accountNoNorm  String // 숫자만 정규화
+  purpose        String?
+  currency       String            @default("KRW")
+  openingBalance Decimal           @db.Decimal(18, 0)
+  openingDate    DateTime
+  overdraftLimit Decimal?          @db.Decimal(18, 0)
+  transactions   BankTransaction[]
+
+  @@unique([tenantId, alias])
+  @@index([tenantId, accountNoNorm])
+}
+
+model BankTransaction {
+  id            String      @id @default(cuid())
+  tenantId      String
+  batchId       String // 출처 배치
+  sourceRowId   String // 근거 RawRow
+  bankAccountId String
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+  txnDate       DateTime
+  description   String?
+  depositAmt    Decimal     @default(0) @db.Decimal(18, 0)
+  withdrawalAmt Decimal     @default(0) @db.Decimal(18, 0)
+  balanceAfter  Decimal?    @db.Decimal(18, 0)
+  counterparty  String?
+  txnType       String?
+
+  @@index([tenantId, bankAccountId, txnDate])
+  @@index([batchId])
+}
+
+enum CashflowDirection {
+  INFLOW
+  OUTFLOW
+}
+
+model CashflowSchedule {
+  id            String            @id @default(cuid())
+  tenantId      String
+  batchId       String
+  sourceRowId   String
+  scheduledDate DateTime
+  direction     CashflowDirection
+  itemType      String // 어음/외상매출/급여/세금/차입상환 ...
+  counterparty  String?
+  amount        Decimal           @db.Decimal(18, 0)
+  certainty     String? // 확정/예상
+  accountAlias  String?
+  refNo         String?
+
+  @@index([tenantId, scheduledDate])
+  @@index([batchId])
+}
+
+// ---------- 월 결산 도메인 ----------
+model TrialBalance {
+  id             String   @id @default(cuid())
+  tenantId       String
+  batchId        String
+  sourceRowId    String
+  period         String // YYYY-MM
+  accountCode    String
+  accountName    String
+  openingBalance Decimal? @db.Decimal(18, 0)
+  debitTotal     Decimal  @db.Decimal(18, 0)
+  creditTotal    Decimal  @db.Decimal(18, 0)
+  closingBalance Decimal? @db.Decimal(18, 0)
+
+  @@unique([tenantId, period, accountCode])
+  @@index([tenantId, period])
+}
+
+enum DrCr {
+  DEBIT
+  CREDIT
+}
+
+model JournalEntry {
+  id           String   @id @default(cuid())
+  tenantId     String
+  batchId      String
+  sourceRowId  String
+  period       String
+  voucherNo    String
+  lineNo       Int?
+  entryDate    DateTime
+  drcr         DrCr
+  accountCode  String
+  accountName  String?
+  amount       Decimal  @db.Decimal(18, 0)
+  description  String?
+  counterparty String?
+
+  @@index([tenantId, period, voucherNo])
+  @@index([tenantId, accountCode, entryDate])
+}
+
+// 보조원장 AR/AP (동일 스키마, arap 구분)
+model Subledger {
+  id             String   @id @default(cuid())
+  tenantId       String
+  batchId        String
+  sourceRowId    String
+  period         String
+  arap           String // AR | AP
+  partnerCode    String?
+  partnerName    String
+  openingBalance Decimal? @db.Decimal(18, 0)
+  increase       Decimal? @db.Decimal(18, 0)
+  decrease       Decimal? @db.Decimal(18, 0)
+  closingBalance Decimal  @db.Decimal(18, 0)
+
+  @@index([tenantId, period, arap])
+  @@index([batchId])
+}
+
+model FixedAsset {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  batchId             String
+  sourceRowId         String
+  period              String
+  assetCode           String
+  assetName           String
+  assetClass          String
+  acquisitionDate     DateTime
+  acquisitionCost     Decimal  @db.Decimal(18, 0)
+  usefulLifeMonths    Int
+  method              String // 정액/정률
+  accumDepOpening     Decimal  @db.Decimal(18, 0)
+  monthlyDepreciation Decimal? @db.Decimal(18, 0)
+
+  @@index([tenantId, period])
+  @@index([batchId])
+}
+
+model ComparativeFs {
+  id           String        @id @default(cuid())
+  tenantId     String
+  batchId      String
+  sourceRowId  String
+  period       String
+  priorPeriod  String
+  statement    StatementType
+  lineItem     String
+  currentAmt   Decimal?      @db.Decimal(18, 0)
+  priorAmt     Decimal       @db.Decimal(18, 0)
+
+  @@index([tenantId, period])
+  @@index([batchId])
+}
+
+// ---------- 계산 결과 (CRO) — AI는 이 밖의 숫자 생성 금지 ----------
+enum SliceType {
+  cash // 자금일보 (자금일보·현금흐름)
+  closing // 월결산
+}
+
+// CalculationResult: 결정론 엔진의 CRO(JSON) 전체를 스냅샷으로 봉인.
+// 개별 metric 행 대신 CRO 전체를 JSON으로 저장하여 @axaxax/shared Cro 타입과 1:1 직렬화.
+model CalculationResult {
+  id            String      @id @default(cuid())
+  tenantId      String
+  batchId       String // 입력 배치(대표)
+  batch         UploadBatch @relation(fields: [batchId], references: [id])
+  slice         SliceType
+  period        String?
+  engineVersion String // 결정론 엔진 버전 박제(재현성)
+  inputsHash    String // 입력 스냅샷 해시
+  cro           Json // @axaxax/shared Cro 전체 직렬화
+  blockedAI     Boolean     @default(false) // validationSummary.blockedAI (FATAL 존재)
+  computedAt    DateTime    @default(now())
+
+  reports Report[]
+
+  @@index([tenantId, slice, period])
+  @@index([batchId])
+}
+
+// ---------- 검증 리포트 ----------
+enum Severity {
+  FATAL
+  WARN
+  INFO
+}
+
+model ValidationReport {
+  id         String      @id @default(cuid())
+  tenantId   String
+  batchId    String      @unique
+  batch      UploadBatch @relation(fields: [batchId], references: [id])
+  severity   Severity // 최고 심각도 — FATAL이면 AI 차단
+  fatalCount Int         @default(0)
+  warnCount  Int         @default(0)
+  infoCount  Int         @default(0)
+  blockedAI  Boolean     @default(false)
+  findings   Json // [{ruleId,severity,message,sourceRowIds}]
+  createdAt  DateTime    @default(now())
+
+  @@index([tenantId])
+}
+
+// ---------- 리포트 (Draft → 승인) — @axaxax/shared ReportStatus 상태머신 ----------
+enum ReportStatus {
+  PENDING
+  CALCULATED
+  BLOCKED
+  AI_DRAFTING
+  DRAFT
+  APPROVED
+  REJECTED
+}
+
+model Report {
+  id              String            @id @default(cuid())
+  tenantId        String
+  batchId         String
+  batch           UploadBatch       @relation(fields: [batchId], references: [id])
+  croId           String? // 인용한 CRO 스냅샷
+  cro             CalculationResult? @relation(fields: [croId], references: [id])
+  slice           SliceType
+  period          String?
+  status          ReportStatus      @default(AI_DRAFTING) // 생성 트리거 시점 상태
+  title           String
+  content         Json? // @axaxax/shared ReportContent (summary/findings/recommendations/...)
+  guard           Json? // GuardResult (환각 가드 결과)
+  confidence      Float? // ReportContent.confidence (0~1)
+  regenCount      Int               @default(0)
+  stale           Boolean           @default(false) // 원본 변경됨 — 재생성 필요 배지
+
+  // 작성/승인 (self-approval 차단을 위해 둘 다 보관)
+  createdById     String
+  createdBy       User              @relation("ReportCreator", fields: [createdById], references: [id])
+  approverId      String?
+  approver        User?             @relation("ReportApprover", fields: [approverId], references: [id])
+  approvedAt      DateTime?
+  rejectionReason String?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  comments Comment[]
+
+  @@index([tenantId, slice, period, status])
+  @@index([batchId])
+}
+
+// 코멘트 (finding 단위 스레드)
+model Comment {
+  id        String   @id @default(cuid())
+  tenantId  String
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  findingId String? // 어떤 finding에 대한 코멘트인지(옵션)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+}
+
+// ---------- 감사 로그 (Evidence Ledger) — append-only ----------
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String
+  actorId    String? // null = system
+  action     String // UPLOAD_COMMITTED / VALIDATION_BLOCKED / AI_INVOKED / REPORT_APPROVED ...
+  targetType String // UploadBatch / Report / CalculationResult ...
+  targetId   String
+  croHash    String? // 근거 CRO 해시(inputsHash) — "이 리포트는 이 CRO 기반"
+  before     Json? // 변경 전 스냅샷
+  after      Json? // 변경 후 스냅샷
+  metadata   Json? // model, tokenUsage, requestId, severity 등
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId, targetType, targetId])
+  @@index([tenantId, action, createdAt])
+}
