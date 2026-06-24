@@ -147,6 +147,44 @@ export function ReportViewer() {
               </div>
             )}
 
+            {/* ── 핵심 요약(정리) 카드 — 한눈에 보기 ── */}
+            <section className="card" style={{ padding: '15px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+                <span className="ai-tag-sq" style={{ width: 22, height: 22, fontSize: 10 }}>AI</span>
+                <h2 style={{ fontSize: 14.5, fontWeight: 700, margin: 0, color: 'var(--ai-strong)' }}>핵심 요약</h2>
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--faint)' }}>관측·가설 · 결정은 사람</span>
+              </div>
+              {content.summary && (
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.75, color: 'var(--text-2)' }}>{content.summary}</p>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 13 }}>
+                {[
+                  { label: '발견 사항', value: `${findings.length}건` },
+                  { label: '확신도', value: `${Math.round(content.confidence * 100)}%` },
+                  { label: '데이터 한계', value: `${content.dataCaveats.length}건` },
+                  { label: '권고', value: `${content.recommendations.length}건` },
+                ].map((s) => (
+                  <span
+                    key={s.label}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      height: 27,
+                      padding: '0 12px',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 7,
+                      fontSize: 12,
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-3)' }}>{s.label}</span>
+                    <b style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>{s.value}</b>
+                  </span>
+                ))}
+              </div>
+            </section>
+
             {/* ── 3단 그리드: AI findings (좌) | CRO 근거 (우) ── */}
             <div className="report-grid">
               {/* TIER 2: AI 분석 리포트 */}
@@ -160,10 +198,6 @@ export function ReportViewer() {
                 </div>
 
                 <div className="ai-panel-body">
-                  {content.summary && (
-                    <p className="finding-obs" style={{ margin: 0 }}>{content.summary}</p>
-                  )}
-
                   {findings.length === 0 ? (
                     <p className="muted" style={{ fontSize: 12.5 }}>
                       근거 수치로 도출된 발견 사항이 없습니다. (데이터 한계는 아래 caveats 참조)
