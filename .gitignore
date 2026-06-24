@@ -1,0 +1,19 @@
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.env
+.env.local
+*.local
+.DS_Store
+*.log
+npm-debug.log*
+.idea/
+.vscode/
+# Prisma
+apps/api/prisma/*.db
+apps/api/prisma/migrations/dev.db*
+# Uploads / object storage (local dev)
+apps/api/storage/
+apps/api/dist-test/
