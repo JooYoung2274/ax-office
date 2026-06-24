@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<dc-import name="Chrome" active="cash" title="자금일보" subtitle="2026년 6월 24일 (화) · 향후 14일 예측" userName="김재무" role="staff" hint-size="1280px,860px">
+<div style="font-family:Pretendard,sans-serif; color:#1a2233; display:flex; flex-direction:column; gap:16px;">
+
+  <!-- KPI row -->
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+    <div style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; padding:15px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12.5px; color:#6a7689; font-weight:500;">총 가용잔액</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:19px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO 검증</span>
+      </div>
+      <div style="margin-top:9px; font-size:26px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums;">₩1,284,520,000</div>
+      <div style="margin-top:5px; font-size:12px; color:#6a7689; font-variant-numeric:tabular-nums;">보통예금 3 · MMF 1</div>
+    </div>
+    <div style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; padding:15px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12.5px; color:#6a7689; font-weight:500;">일일 자금수지 (당일)</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:19px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO 검증</span>
+      </div>
+      <div style="margin-top:9px; font-size:26px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums; color:#15803d;">+₩42,100,000</div>
+      <div style="margin-top:5px; font-size:12px; color:#6a7689; font-variant-numeric:tabular-nums;">입금 ₩118,400,000 · 출금 ₩76,300,000</div>
+    </div>
+    <div style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; padding:15px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12.5px; color:#6a7689; font-weight:500;">예측 최저잔액 (14일)</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:19px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO 검증</span>
+      </div>
+      <div style="margin-top:9px; font-size:26px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums; color:#b91c1c;">−₩12,400,000</div>
+      <div style="margin-top:5px; font-size:12px; color:#b45309; font-variant-numeric:tabular-nums;">7월 1일 · 안전선 하회</div>
+    </div>
+  </div>
+
+  <!-- Forecast chart -->
+  <section style="background:#fff; border:1px solid #e3e8f0; border-radius:8px;">
+    <div style="padding:13px 16px; border-bottom:1px solid #eef1f6; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:9px;">
+        <h2 style="font-size:14px; font-weight:700; margin:0;">현금흐름 예측 · 향후 14일 잔액</h2>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>예측모델</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; font-size:11.5px; color:#6a7689;">
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:14px; height:2.5px; background:#3730a3; border-radius:2px;"></span>예측 잔액</span>
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:14px; height:0; border-top:2px dashed #15803d;"></span>안전선 ₩50,000,000</span>
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:12px; height:10px; background:rgba(220,38,38,0.12); border:1px solid #e7b4b4; border-radius:2px;"></span>하회 구간</span>
+      </div>
+    </div>
+    <div style="padding:14px 12px 8px;">
+      <svg viewBox="0 0 1000 280" style="width:100%; height:auto; display:block;" preserveAspectRatio="none">
+        <!-- grid -->
+        <line x1="60" y1="65" x2="980" y2="65" stroke="#eef1f6" stroke-width="1"/>
+        <line x1="60" y1="140" x2="980" y2="140" stroke="#eef1f6" stroke-width="1"/>
+        <line x1="60" y1="215" x2="980" y2="215" stroke="#eef1f6" stroke-width="1"/>
+        <line x1="60" y1="230" x2="980" y2="230" stroke="#dde3ec" stroke-width="1"/>
+        <text x="52" y="69" text-anchor="end" font-size="10" fill="#9aa7bd" font-family="Pretendard">10억</text>
+        <text x="52" y="144" text-anchor="end" font-size="10" fill="#9aa7bd" font-family="Pretendard">5억</text>
+        <text x="52" y="219" text-anchor="end" font-size="10" fill="#9aa7bd" font-family="Pretendard">0</text>
+        <!-- danger band -->
+        <rect x="{{ bandX }}" y="20" width="{{ bandW }}" height="210" fill="rgba(220,38,38,0.07)"/>
+        <!-- safety line -->
+        <line x1="60" y1="207.5" x2="980" y2="207.5" stroke="#15803d" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <!-- area + line -->
+        <path d="{{ areaPath }}" fill="rgba(55,48,163,0.07)"/>
+        <path d="{{ linePath }}" fill="none" stroke="#3730a3" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- min marker -->
+        <circle cx="{{ minX }}" cy="{{ minY }}" r="4.5" fill="#dc2626" stroke="#fff" stroke-width="2"/>
+        <text x="{{ minX }}" y="{{ minLabelY }}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#b91c1c" font-family="Pretendard">−₩12.4M · 7/1</text>
+        <!-- x labels -->
+        <text x="60" y="250" text-anchor="middle" font-size="10" fill="#9aa7bd" font-family="Pretendard">6/24</text>
+        <text x="272" y="250" text-anchor="middle" font-size="10" fill="#9aa7bd" font-family="Pretendard">6/27</text>
+        <text x="485" y="250" text-anchor="middle" font-size="10" fill="#9aa7bd" font-family="Pretendard">6/30</text>
+        <text x="697" y="250" text-anchor="middle" font-size="10" fill="#9aa7bd" font-family="Pretendard">7/3</text>
+        <text x="980" y="250" text-anchor="middle" font-size="10" fill="#9aa7bd" font-family="Pretendard">7/7</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- alert + table -->
+  <div style="display:grid; grid-template-columns:1fr; gap:16px;">
+    <section style="background:#fff; border:1px solid #e3e8f0; border-radius:8px;">
+      <div style="padding:13px 16px; border-bottom:1px solid #eef1f6; display:flex; align-items:center; justify-content:space-between;">
+        <h2 style="font-size:14px; font-weight:700; margin:0;">일자별 거래 내역</h2>
+        <span style="font-size:11.5px; color:#8b99ad;">최근 5영업일</span>
+      </div>
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px; font-variant-numeric:tabular-nums;">
+        <thead>
+          <tr style="background:#f7f9fc; color:#6a7689; text-align:left;">
+            <th style="padding:8px 16px; font-weight:600;">일자</th>
+            <th style="padding:8px 12px; font-weight:600;">적요</th>
+            <th style="padding:8px 12px; font-weight:600; text-align:right;">입금</th>
+            <th style="padding:8px 12px; font-weight:600; text-align:right;">출금</th>
+            <th style="padding:8px 16px; font-weight:600; text-align:right;">잔액</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9;">06.24</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9;">(주)대성물산 매출대금 입금</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#15803d;">118,400,000</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#cbd2dc;">—</td><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9; text-align:right; font-weight:600;">1,284,520,000</td></tr>
+          <tr><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9;">06.24</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9;">급여 이체 (6월분)</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#cbd2dc;">—</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#b91c1c;">68,200,000</td><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9; text-align:right; font-weight:600;">1,166,120,000</td></tr>
+          <tr><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9;">06.23</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9;">법인카드 정산</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#cbd2dc;">—</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#b91c1c;">8,100,000</td><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9; text-align:right; font-weight:600;">1,234,320,000</td></tr>
+          <tr><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9;">06.23</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9;">전자세금계산서 부가세 예수</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#15803d;">12,600,000</td><td style="padding:9px 12px; border-bottom:1px solid #f3f5f9; text-align:right; color:#cbd2dc;">—</td><td style="padding:9px 16px; border-bottom:1px solid #f3f5f9; text-align:right; font-weight:600;">1,242,420,000</td></tr>
+          <tr><td style="padding:9px 16px;">06.20</td><td style="padding:9px 12px;">임차료 자동이체</td><td style="padding:9px 12px; text-align:right; color:#cbd2dc;">—</td><td style="padding:9px 12px; text-align:right; color:#b91c1c;">14,500,000</td><td style="padding:9px 16px; text-align:right; font-weight:600;">1,229,820,000</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+</div>
+</dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  renderVals() {
+    const vals = [1284,1120,980,760,540,310,120,-12,30,180,360,520,690,540];
+    const x0=60, x1=980, yMin=-100, yMax=1300, yTop=20, yBot=230;
+    const xAt = i => x0 + i*(x1-x0)/(vals.length-1);
+    const yAt = v => yBot - (v - yMin)/(yMax - yMin)*(yBot - yTop);
+    const pts = vals.map((v,i)=>({x:xAt(i), y:yAt(v)}));
+    const linePath = pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+    const areaPath = 'M'+pts[0].x.toFixed(1)+' '+yBot+' '+pts.map(p=>'L'+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ')+' L'+pts[pts.length-1].x.toFixed(1)+' '+yBot+' Z';
+    // min
+    let mi=0; vals.forEach((v,i)=>{ if(v<vals[mi]) mi=i; });
+    const minX=pts[mi].x, minY=pts[mi].y;
+    // safety crossing band (value < 50)
+    const sv=50;
+    const cross=(i,j)=>{ const a=vals[i],b=vals[j]; const f=(a-sv)/(a-b); return xAt(i)+f*(xAt(j)-xAt(i)); };
+    let bandX=minX, bandEnd=minX;
+    for(let i=0;i<vals.length-1;i++){ if(vals[i]>=sv && vals[i+1]<sv) bandX=cross(i,i+1); if(vals[i]<sv && vals[i+1]>=sv) bandEnd=cross(i,i+1); }
+    return {
+      linePath, areaPath, minX:minX.toFixed(1), minY:minY.toFixed(1),
+      minLabelY:(minY+18).toFixed(1),
+      bandX:bandX.toFixed(1), bandW:(bandEnd-bandX).toFixed(1)
+    };
+  }
+}
+</script>
+</body>
+</html>

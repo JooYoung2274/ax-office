@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex; width:1280px; height:860px; background:#eef1f6; font-family:Pretendard,-apple-system,system-ui,sans-serif; color:#1a2233; overflow:hidden; -webkit-font-smoothing:antialiased; font-feature-settings:'tnum' 0;">
+
+  <!-- Sidebar -->
+  <aside style="width:216px; flex:0 0 216px; background:#161d2b; display:flex; flex-direction:column; color:#9aa7bd;">
+    <div style="display:flex; align-items:center; gap:9px; padding:20px 18px 18px;">
+      <div style="width:26px; height:26px; border-radius:6px; background:linear-gradient(135deg,#4f46b8,#3730a3); display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800;">F</div>
+      <div style="font-size:15px; font-weight:700; color:#f2f5fa; letter-spacing:-0.2px;">Finance AX</div>
+    </div>
+
+    <nav style="display:flex; flex-direction:column; padding:8px 0; gap:1px;">
+      <a href="#" style="{{ homeStyle }}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+        <span>홈</span>
+      </a>
+      <a href="#" style="{{ uploadStyle }}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+        <span>업로드</span>
+      </a>
+      <a href="#" style="{{ cashStyle }}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.4"/></svg>
+        <span>자금일보</span>
+      </a>
+      <a href="#" style="{{ closingStyle }}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        <span>월결산</span>
+      </a>
+      <a href="#" style="{{ reportStyle }}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v6h6"/><path d="M9 14l2 2 4-4"/></svg>
+        <span>리포트</span>
+      </a>
+      <a href="#" style="{{ auditStyle }}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <span>감사로그</span>
+      </a>
+    </nav>
+
+    <div style="margin-top:auto; padding:14px 18px; border-top:1px solid rgba(255,255,255,0.06); font-size:11px; color:#5e6b80; line-height:1.5;">
+      <div style="display:flex; align-items:center; gap:6px;"><span style="width:6px; height:6px; border-radius:50%; background:#22c55e;"></span>백엔드 연결됨</div>
+      <div style="margin-top:3px; color:#46536a;">CRO 엔진 v1.2 · 결정론적 검증</div>
+    </div>
+  </aside>
+
+  <!-- Main column -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+    <!-- Topbar -->
+    <header style="height:56px; flex:0 0 56px; background:#fff; border-bottom:1px solid #e3e8f0; display:flex; align-items:center; justify-content:space-between; padding:0 22px;">
+      <div style="display:flex; align-items:baseline; gap:12px;">
+        <h1 style="font-size:17px; font-weight:700; letter-spacing:-0.3px; margin:0; color:#1a2233;">{{ title }}</h1>
+        <span style="font-size:12.5px; color:#8b99ad;">{{ subtitle }}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button style="display:flex; align-items:center; gap:7px; height:32px; padding:0 12px; background:#f4f6fa; border:1px solid #e0e6ef; border-radius:6px; font-size:12.5px; color:#3a485c; font-weight:500; cursor:pointer;" style-hover="background:#eef1f6;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+          <span style="font-variant-numeric:tabular-nums;">2026.06</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div style="width:1px; height:22px; background:#e3e8f0;"></div>
+        <div style="display:flex; align-items:center; gap:9px;">
+          <div style="width:30px; height:30px; border-radius:50%; background:#e7eaf6; color:#3730a3; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">{{ userInitial }}</div>
+          <div style="line-height:1.25;">
+            <div style="font-size:12.5px; font-weight:600; color:#22304a;">{{ userName }}</div>
+            <div style="font-size:11px; color:#8b99ad;">{{ roleLabel }}</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content slot -->
+    <main style="flex:1; overflow:auto; padding:22px 24px 32px;">
+      {{ children }}
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;upload&quot;,&quot;cash&quot;,&quot;closing&quot;,&quot;report&quot;,&quot;audit&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;홈&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;subtitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;userName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;김재무&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;staff&quot;,&quot;approver&quot;,&quot;admin&quot;],&quot;default&quot;:&quot;staff&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props || {};
+    const active = p.active || 'home';
+    const base = {
+      display: 'flex', alignItems: 'center', gap: '11px',
+      padding: '9px 18px', margin: '0 0', fontSize: '13px',
+      fontWeight: 500, textDecoration: 'none', color: '#9aa7bd',
+      boxShadow: 'inset 3px 0 0 transparent', transition: 'all .12s'
+    };
+    const on = { color: '#f2f5fa', background: 'rgba(99,102,241,0.16)', boxShadow: 'inset 3px 0 0 #6366f1', fontWeight: 600 };
+    const mk = (k) => active === k ? { ...base, ...on } : base;
+    const roleMap = {
+      staff: '재무담당자', approver: '재무팀장', admin: '관리자'
+    };
+    return {
+      homeStyle: mk('home'), uploadStyle: mk('upload'), cashStyle: mk('cash'),
+      closingStyle: mk('closing'), reportStyle: mk('report'), auditStyle: mk('audit'),
+      title: p.title || '홈',
+      subtitle: p.subtitle || '',
+      userName: p.userName || '김재무',
+      userInitial: (p.userName || '김재무').slice(0,1),
+      roleLabel: roleMap[p.role || 'staff'] || '재무담당자',
+      children: this.props.children
+    };
+  }
+}
+</script>
+</body>
+</html>

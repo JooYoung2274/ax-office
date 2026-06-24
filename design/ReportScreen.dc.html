@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<dc-import name="Chrome" active="report" title="리포트 뷰어" subtitle="6월 자금·결산 분석 · CRO #2026-06-031" userName="김재무" role="staff" hint-size="1280px,860px">
+<div style="position:relative; font-family:Pretendard,sans-serif; color:#1a2233;">
+
+  <!-- watermark -->
+  <div style="position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; display:flex; align-items:center; justify-content:center;">
+    <div style="transform:rotate(-24deg); font-size:96px; font-weight:800; color:rgba(180,83,9,0.06); letter-spacing:4px; white-space:nowrap;">DRAFT · 미승인</div>
+  </div>
+
+  <div style="position:relative; z-index:1; display:flex; flex-direction:column; gap:16px;">
+
+  <!-- DRAFT banner -->
+  <div style="display:flex; align-items:center; gap:12px; padding:11px 16px; background:#fffaf0; border:1px solid #f1dcae; border-radius:8px;">
+    <span style="display:inline-flex; align-items:center; gap:6px; height:23px; padding:0 9px; background:#fef3df; color:#b45309; border:1px solid #f0d49a; border-radius:5px; font-size:11.5px; font-weight:700;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>DRAFT · 미승인
+    </span>
+    <span style="font-size:12.5px; color:#7c5f3a;">이 리포트는 승인 전 초안입니다. Export·외부 공유는 승인 후 가능합니다.</span>
+    <span style="margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:#9aa7bd;">
+      <span style="display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 7px; background:#f4f1f9; color:#6d5f93; border:1px solid #ddd6ea; border-radius:4px; font-weight:600;">AI 작성</span>
+      Claude · 2026.06.24 08:38 생성
+    </span>
+  </div>
+
+  <!-- 3-tier grid: AI findings (left) | CRO evidence (right) -->
+  <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start;">
+
+    <!-- TIER 2: AI report -->
+    <section style="border:1px solid #ddd6ea; border-radius:9px; background:#fbfaff; overflow:hidden;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 16px; background:#f4f1f9; border-bottom:1px solid #e4dcf0;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <span style="width:24px; height:24px; border-radius:6px; background:#6d5f93; color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700;">AI</span>
+          <h2 style="font-size:14.5px; font-weight:700; margin:0; color:#43395f;">AI 분석 리포트 — 관측·가설</h2>
+        </div>
+        <span style="font-size:11px; color:#8579a3;">결정하지 않습니다 · 보조 의견</span>
+      </div>
+
+      <div style="padding:10px 11px 12px; display:flex; flex-direction:column; gap:9px;">
+        <sc-for list="{{ findings }}" as="f" hint-placeholder-count="3">
+          <div onClick="{{ f.onClick }}" style="{{ f.cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="{{ f.sevStyle }}">{{ f.sevLabel }}</span>
+              <span style="font-size:13.5px; font-weight:700; color:#2a2440;">{{ f.title }}</span>
+            </div>
+            <p style="margin:8px 0 0; font-size:12.5px; color:#4f4763; line-height:1.55;">{{ f.obs }}</p>
+            <div style="margin-top:9px; display:flex; flex-wrap:wrap; gap:6px;">
+              <sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2">
+                <span style="display:inline-flex; align-items:center; gap:4px; height:21px; padding:0 8px; background:#eef0fb; color:#3730a3; border:1px solid #d7daf0; border-radius:5px; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>{{ c.label }}
+                </span>
+              </sc-for>
+            </div>
+            <div style="margin-top:10px; padding-top:9px; border-top:1px dashed #e4dcf0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div style="font-size:11.5px; color:#6b6383;"><b style="color:#43395f;">원인 가설</b> · {{ f.hypothesis }}</div>
+              <div style="flex:0 0 auto; display:flex; align-items:center; gap:7px;">
+                <span style="font-size:10.5px; color:#8579a3;">확신도</span>
+                <div style="width:54px; height:5px; background:#e7e1f1; border-radius:3px; overflow:hidden;"><div style="{{ f.confStyle }}"></div></div>
+                <span style="font-size:11.5px; font-weight:700; color:#5a4f78; font-variant-numeric:tabular-nums;">{{ f.confPct }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+
+        <!-- data caveats -->
+        <div style="margin-top:2px; padding:11px 13px; background:#fff; border:1px solid #e9e3f3; border-radius:7px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:#8a6d3a;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>데이터 한계 (dataCaveats)
+          </div>
+          <ul style="margin:7px 0 0; padding-left:17px; font-size:11.5px; color:#6b6383; line-height:1.7;">
+            <li>6/24 이후 거래는 예측값이며 실제 회수일에 따라 변동될 수 있습니다.</li>
+            <li>거래처 '거래처명' 컬럼은 자동 매핑되어 일부 누락 가능성이 있습니다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIER 1: CRO evidence (facts) -->
+    <section style="border:1px solid #dbe1ec; border-radius:9px; background:#fff; overflow:hidden; position:sticky; top:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-bottom:1px solid #eef1f6;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <span style="display:inline-flex; align-items:center; gap:4px; height:21px; padding:0 8px; background:#3730a3; color:#fff; border-radius:5px; font-size:10.5px; font-weight:700;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO
+          </span>
+          <h2 style="font-size:14px; font-weight:700; margin:0;">근거 수치 · 결정론적</h2>
+        </div>
+      </div>
+      <div style="padding:11px 13px;">
+        <div style="font-size:11.5px; color:#8b99ad; margin-bottom:9px;">선택한 관측: <b style="color:#43395f;">{{ selectedTitle }}</b> 가 인용한 수치</div>
+        <div style="display:flex; flex-direction:column; gap:1px; background:#eef1f6; border:1px solid #eef1f6; border-radius:7px; overflow:hidden;">
+          <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="5">
+            <div style="{{ m.rowStyle }}">
+              <div style="min-width:0;">
+                <div style="font-size:12px; color:#5a6b82; display:flex; align-items:center; gap:6px;">{{ m.label }}<span style="{{ m.tagStyle }}">{{ m.tag }}</span></div>
+                <div style="font-size:11px; color:#9aa7bd; margin-top:1px;">{{ m.key }}</div>
+              </div>
+              <div style="{{ m.valStyle }}">{{ m.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:10px; font-size:11px; color:#9aa7bd; line-height:1.6;">이 수치는 업로드 데이터에 대해 코드가 100% 결정론적으로 산출·검증한 값입니다. AI는 이 값을 인용만 하며 수정하지 않습니다.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- TIER 3: human approval bar -->
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; background:#fff; border:1px solid #dbe1ec; border-radius:8px; padding:13px 18px; box-shadow:0 -1px 0 #eef1f6;">
+    <div style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#5a6b82;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3730a3" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      최종 결론·승인은 <b style="color:#1a2233;">사람</b>의 책임입니다 · 현재 상태 <b style="color:#b45309;">DRAFT</b>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button style="display:inline-flex; align-items:center; gap:6px; height:38px; padding:0 15px; background:#fff; border:1px solid #d6ddE8; border-radius:7px; font-size:13px; font-weight:600; color:#3a485c; cursor:pointer;" style-hover="background:#f7f9fc;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>코멘트
+      </button>
+      <button style="display:inline-flex; align-items:center; gap:6px; height:38px; padding:0 16px; background:#fff; border:1px solid #e3b6b6; border-radius:7px; font-size:13px; font-weight:600; color:#b91c1c; cursor:pointer;" style-hover="background:#fdf3f3;">
+        반려 (사유 입력)
+      </button>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
+        <button disabled="true" title="본인이 생성한 리포트는 승인할 수 없습니다 (self-approval 차단). 재무팀장 권한이 필요합니다." style="display:inline-flex; align-items:center; gap:7px; height:38px; padding:0 20px; background:#eef0f4; color:#aab3c2; border:1px solid #e3e8f0; border-radius:7px; font-size:13px; font-weight:700; cursor:not-allowed;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>승인
+        </button>
+        <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; color:#8b99ad;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          본인 생성 초안 — 승인 불가 (재무팀장 권한 필요)
+        </span>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+</dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  state = { sel: 0 };
+  renderVals() {
+    const sevMap = {
+      high:   { label:'높음', bg:'#fdecec', color:'#b91c1c', bd:'#f0c4c4' },
+      mid:    { label:'중간', bg:'#fef3df', color:'#b45309', bd:'#f0d49a' },
+      low:    { label:'낮음', bg:'#eef4fb', color:'#3a6ea5', bd:'#cfe0f0' }
+    };
+    const data = [
+      { sev:'high', title:'7일 내 유동성 위험', conf:0.86,
+        obs:'매출채권 회수가 지연되며 7일 내 예측 최저잔액이 안전선을 하회합니다. 7월 1일 예측잔액은 안전선 대비 약 6,240만원 부족합니다.',
+        hyp:'(주)대성물산 대금 회수가 약정 D+30 대비 D+58로 지연',
+        chips:['최저잔액 −₩12.4M','안전선 하회 FLAG','AR회수일수 62일'],
+        ev:['minBalance7d','flagBelowSafety','arDays'] },
+      { sev:'mid', title:'단일 거래처 매출 집중', conf:0.74,
+        obs:'(주)대성물산 매출 비중이 내부 한도(30%)를 초과한 38.2%이며, 미회수 채권 4.18억원이 이 거래처에 집중되어 있습니다.',
+        hyp:'신규 거래처 다변화 부진으로 특정 거래처 의존도 상승',
+        chips:['집중도 38.2%','미회수 ₩418M'],
+        ev:['concentration','arOutstanding'] },
+      { sev:'low', title:'판관비 전월 대비 증가', conf:0.61,
+        obs:'6월 판매관리비가 전월 대비 8.4% 증가했습니다. 증가분의 상당 부분은 출장비 항목에서 발생했습니다.',
+        hyp:'분기말 영업 활동에 따른 출장·접대비 일시 증가 (계절성 가능)',
+        chips:['판관비 +8.4% MoM','출장비 +₩2.1M'],
+        ev:['sgaMoM','travelExp'] }
+    ];
+    const allMetrics = [
+      { key:'minBalance7d', label:'7일 예측 최저잔액', value:'−₩12,400,000' },
+      { key:'flagBelowSafety', label:'안전선 하회 플래그', value:'TRUE', flag:true },
+      { key:'arDays', label:'매출채권 평균 회수일수', value:'62일' },
+      { key:'concentration', label:'최대 거래처 매출 집중도', value:'38.2%' },
+      { key:'arOutstanding', label:'대성물산 미회수 채권', value:'₩418,000,000' },
+      { key:'sgaMoM', label:'판관비 전월대비 증감', value:'+8.4%' },
+      { key:'travelExp', label:'출장비 증감', value:'+₩2,100,000' }
+    ];
+    const sel = this.state.sel;
+    const findings = data.map((d,i)=>{
+      const s = sevMap[d.sev];
+      const active = i===sel;
+      return {
+        sevLabel: s.label,
+        sevStyle: { display:'inline-flex', alignItems:'center', height:'20px', padding:'0 8px', background:s.bg, color:s.color, border:'1px solid '+s.bd, borderRadius:'4px', fontSize:'11px', fontWeight:700, flex:'0 0 auto' },
+        title: d.title, obs: d.obs, hypothesis: d.hyp, chips: d.chips.map(label=>({label})),
+        confPct: Math.round(d.conf*100)+'%',
+        confStyle: { width: Math.round(d.conf*100)+'%', height:'100%', background:'#8b7bb4' },
+        cardStyle: {
+          cursor:'pointer', borderRadius:'8px', padding:'12px 13px',
+          background: active ? '#fff' : '#fbfaff',
+          border: active ? '1.5px solid #8b7bb4' : '1px solid #e7e1f1',
+          boxShadow: active ? '0 2px 8px rgba(109,95,147,0.13)' : 'none',
+          transition:'all .12s'
+        },
+        onClick: () => this.setState({ sel:i })
+      };
+    });
+    const evSet = new Set(data[sel].ev);
+    const metrics = allMetrics.map(m=>{
+      const hot = evSet.has(m.key);
+      return {
+        key:m.key, label:m.label, value:m.value,
+        tag: hot ? '인용됨' : '',
+        tagStyle: hot ? { display:'inline-flex', alignItems:'center', height:'16px', padding:'0 6px', background:'#6d5f93', color:'#fff', borderRadius:'3px', fontSize:'9.5px', fontWeight:700 } : { display:'none' },
+        rowStyle: {
+          display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px',
+          padding:'10px 12px',
+          background: hot ? '#f6f3fc' : '#fff',
+          boxShadow: hot ? 'inset 3px 0 0 #6d5f93' : 'inset 3px 0 0 transparent'
+        },
+        valStyle: {
+          fontSize:'14px', fontWeight:700, fontVariantNumeric:'tabular-nums',
+          color: m.flag ? '#b91c1c' : (hot ? '#2a2440' : '#46536a'),
+          flex:'0 0 auto'
+        }
+      };
+    });
+    return { findings, metrics, selectedTitle: data[sel].title };
+  }
+}
+</script>
+</body>
+</html>

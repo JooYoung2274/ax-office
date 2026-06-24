@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<dc-import name="Chrome" active="home" title="홈" subtitle="2026년 6월 24일 (화) 09:14 기준" userName="김재무" role="staff" hint-size="1280px,860px">
+<div style="font-family:Pretendard,sans-serif; color:#1a2233; display:flex; flex-direction:column; gap:18px;">
+
+  <!-- KPI strip -->
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+
+    <div style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; padding:15px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12.5px; color:#6a7689; font-weight:500;">총 가용잔액</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:19px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO 검증
+        </span>
+      </div>
+      <div style="margin-top:9px; font-size:27px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums;">₩1,284,520,000</div>
+      <div style="margin-top:5px; font-size:12px; color:#6a7689; font-variant-numeric:tabular-nums;">전일 대비 <span style="color:#15803d; font-weight:600;">+₩42,100,000</span> · 4개 계좌</div>
+    </div>
+
+    <div style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; padding:15px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12.5px; color:#6a7689; font-weight:500;">7일 예측 최저잔액</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:19px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO 검증
+        </span>
+      </div>
+      <div style="margin-top:9px; font-size:27px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums; color:#b91c1c;">−₩12,400,000</div>
+      <div style="margin-top:5px; font-size:12px; color:#b45309; font-variant-numeric:tabular-nums;">7월 1일 안전선(₩50,000,000) 하회 예상</div>
+    </div>
+
+    <div style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; padding:15px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12.5px; color:#6a7689; font-weight:500;">이번 달 검증 통과율</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:19px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>CRO 검증
+        </span>
+      </div>
+      <div style="margin-top:9px; font-size:27px; font-weight:700; letter-spacing:-0.6px; font-variant-numeric:tabular-nums;">92.4<span style="font-size:16px; color:#8b99ad;">%</span></div>
+      <div style="margin-top:5px; font-size:12px; color:#6a7689; font-variant-numeric:tabular-nums;">12건 중 11건 통과 · FATAL 1건</div>
+    </div>
+  </div>
+
+  <!-- Liquidity alert card -->
+  <section style="background:#fff; border:1px solid #e3e8f0; border-radius:8px; overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid #eef1f6;">
+      <div style="display:flex; align-items:center; gap:9px;">
+        <span style="display:inline-flex; width:7px; height:7px; border-radius:50%; background:#dc2626;"></span>
+        <h2 style="font-size:14.5px; font-weight:700; margin:0; color:#1a2233;">유동성 경보</h2>
+        <span style="display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 7px; background:#eef0fb; color:#3730a3; border:1px solid #dde0f5; border-radius:4px; font-size:10.5px; font-weight:600;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>결정론적 산출
+        </span>
+      </div>
+      <span style="font-size:12px; color:#8b99ad;">위험도 높은 순 · 3건</span>
+    </div>
+
+    <!-- alert row: critical -->
+    <div style="display:flex; align-items:flex-start; gap:14px; padding:14px 18px; border-left:3px solid #dc2626; background:linear-gradient(90deg,#fdf3f3,#fff 40%);">
+      <span style="flex:0 0 auto; display:inline-flex; align-items:center; height:21px; padding:0 9px; background:#dc2626; color:#fff; border-radius:4px; font-size:11px; font-weight:700;">위험</span>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13.5px; font-weight:600; color:#1a2233;">7일 내 예측 최저잔액이 안전선을 하회합니다</div>
+        <div style="margin-top:3px; font-size:12.5px; color:#5a6b82; font-variant-numeric:tabular-nums;">7월 1일 예측잔액 <b style="color:#b91c1c;">−₩12,400,000</b> · 안전선 ₩50,000,000 · 부족분 <b style="color:#b91c1c;">₩62,400,000</b></div>
+      </div>
+      <div style="flex:0 0 auto; text-align:right;">
+        <a href="#" style="font-size:12px; color:#3730a3; font-weight:600; text-decoration:none;">근거 보기 →</a>
+        <div style="margin-top:4px; font-size:11px; color:#9aa7bd; font-variant-numeric:tabular-nums;">자금일보 · 예측모델</div>
+      </div>
+    </div>
+
+    <!-- alert row: warning -->
+    <div style="display:flex; align-items:flex-start; gap:14px; padding:14px 18px; border-left:3px solid #d97706; background:#fffdf8; border-top:1px solid #f3f0e8;">
+      <span style="flex:0 0 auto; display:inline-flex; align-items:center; height:21px; padding:0 9px; background:#fef3df; color:#b45309; border:1px solid #f3dcb0; border-radius:4px; font-size:11px; font-weight:700;">주의</span>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13.5px; font-weight:600; color:#1a2233;">단일 거래처 매출채권 집중도 한도 초과</div>
+        <div style="margin-top:3px; font-size:12.5px; color:#5a6b82; font-variant-numeric:tabular-nums;">(주)대성물산 비중 <b style="color:#b45309;">38.2%</b> · 내부한도 30% · 미회수 ₩418,000,000</div>
+      </div>
+      <div style="flex:0 0 auto; text-align:right;">
+        <a href="#" style="font-size:12px; color:#3730a3; font-weight:600; text-decoration:none;">근거 보기 →</a>
+        <div style="margin-top:4px; font-size:11px; color:#9aa7bd;">월결산 · 계정대사</div>
+      </div>
+    </div>
+
+    <!-- alert row: warning 2 -->
+    <div style="display:flex; align-items:flex-start; gap:14px; padding:14px 18px; border-left:3px solid #d97706; background:#fffdf8; border-top:1px solid #f3f0e8;">
+      <span style="flex:0 0 auto; display:inline-flex; align-items:center; height:21px; padding:0 9px; background:#fef3df; color:#b45309; border:1px solid #f3dcb0; border-radius:4px; font-size:11px; font-weight:700;">주의</span>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13.5px; font-weight:600; color:#1a2233;">차입금 만기 집중 — 6월 30일 일시상환</div>
+        <div style="margin-top:3px; font-size:12.5px; color:#5a6b82; font-variant-numeric:tabular-nums;">국민은행 운전자금 <b style="color:#b45309;">₩300,000,000</b> 만기 도래 · D-6</div>
+      </div>
+      <div style="flex:0 0 auto; text-align:right;">
+        <a href="#" style="font-size:12px; color:#3730a3; font-weight:600; text-decoration:none;">근거 보기 →</a>
+        <div style="margin-top:4px; font-size:11px; color:#9aa7bd;">자금일보 · 차입금</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom: queue + activity -->
+  <div style="display:grid; grid-template-columns:1.1fr 1fr; gap:14px; align-items:start;">
+
+    <!-- Processing queue -->
+    <section style="background:#fff; border:1px solid #e3e8f0; border-radius:8px;">
+      <div style="padding:13px 16px; border-bottom:1px solid #eef1f6; display:flex; align-items:center; justify-content:space-between;">
+        <h2 style="font-size:14px; font-weight:700; margin:0;">처리 현황 큐</h2>
+        <span style="font-size:11.5px; color:#9aa7bd;">실시간</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#eef1f6;">
+        <div style="background:#fff; padding:15px 16px; cursor:pointer;" style-hover="background:#f8fafc;">
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#6a7689;"><span style="width:8px;height:8px;border-radius:2px;background:#3730a3;"></span>업로드 중</div>
+          <div style="margin-top:6px; font-size:24px; font-weight:700; font-variant-numeric:tabular-nums;">2</div>
+        </div>
+        <div style="background:#fff; padding:15px 16px; cursor:pointer;" style-hover="background:#fdf6f6;">
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#6a7689;"><span style="width:8px;height:8px;border-radius:2px;background:#dc2626;"></span>검증 실패</div>
+          <div style="margin-top:6px; font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; color:#b91c1c;">1</div>
+        </div>
+        <div style="background:#fff; padding:15px 16px; cursor:pointer;" style-hover="background:#fffdf6;">
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#6a7689;"><span style="width:8px;height:8px;border-radius:2px;background:#d97706;"></span>Draft 미승인</div>
+          <div style="margin-top:6px; font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; color:#b45309;">3</div>
+        </div>
+        <div style="background:#fff; padding:15px 16px; cursor:pointer;" style-hover="background:#f8fafc;">
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#6a7689;"><span style="width:8px;height:8px;border-radius:2px;background:#6366f1;"></span>승인 대기</div>
+          <div style="margin-top:6px; font-size:24px; font-weight:700; font-variant-numeric:tabular-nums;">2</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent activity -->
+    <section style="background:#fff; border:1px solid #e3e8f0; border-radius:8px;">
+      <div style="padding:13px 16px; border-bottom:1px solid #eef1f6; display:flex; align-items:center; justify-content:space-between;">
+        <h2 style="font-size:14px; font-weight:700; margin:0;">최근 활동</h2>
+        <a href="#" style="font-size:11.5px; color:#3730a3; text-decoration:none; font-weight:600;">감사로그 전체 →</a>
+      </div>
+      <div>
+        <div style="display:flex; gap:11px; padding:11px 16px; border-bottom:1px solid #f3f5f9;">
+          <div style="flex:0 0 26px; width:26px; height:26px; border-radius:50%; background:#e9f5ee; color:#15803d; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">박</div>
+          <div style="flex:1; font-size:12.5px; line-height:1.45;"><b>박팀장</b>님이 <span style="color:#15803d; font-weight:600;">5월 결산 리포트</span>를 승인했습니다</div>
+          <div style="flex:0 0 auto; font-size:11px; color:#9aa7bd; font-variant-numeric:tabular-nums;">08:52</div>
+        </div>
+        <div style="display:flex; gap:11px; padding:11px 16px; border-bottom:1px solid #f3f5f9;">
+          <div style="flex:0 0 26px; width:26px; height:26px; border-radius:50%; background:#e7eaf6; color:#3730a3; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">김</div>
+          <div style="flex:1; font-size:12.5px; line-height:1.45;"><b>김재무</b>님이 <span style="font-weight:600;">6월 자금일보</span> 파일을 업로드했습니다</div>
+          <div style="flex:0 0 auto; font-size:11px; color:#9aa7bd; font-variant-numeric:tabular-nums;">08:40</div>
+        </div>
+        <div style="display:flex; gap:11px; padding:11px 16px; border-bottom:1px solid #f3f5f9;">
+          <div style="flex:0 0 26px; width:26px; height:26px; border-radius:50%; background:#f3f1f8; color:#6d5f93; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">AI</div>
+          <div style="flex:1; font-size:12.5px; line-height:1.45;"><span style="color:#6d5f93; font-weight:600;">AI 리포트</span> 초안이 생성되었습니다 — 6월 이상분개 3건 관측</div>
+          <div style="flex:0 0 auto; font-size:11px; color:#9aa7bd; font-variant-numeric:tabular-nums;">08:38</div>
+        </div>
+        <div style="display:flex; gap:11px; padding:11px 16px;">
+          <div style="flex:0 0 26px; width:26px; height:26px; border-radius:50%; background:#fdecec; color:#b91c1c; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">!</div>
+          <div style="flex:1; font-size:12.5px; line-height:1.45;"><span style="font-weight:600;">6월 시산표</span> 검증 실패 — 차변·대변 불일치 (AI 생성 차단)</div>
+          <div style="flex:0 0 auto; font-size:11px; color:#9aa7bd; font-variant-numeric:tabular-nums;">08:31</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</div>
+</dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}"></script>
+</body>
+</html>

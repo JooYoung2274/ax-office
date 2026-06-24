@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    body { margin:0; font-family:Pretendard,-apple-system,system-ui,sans-serif; }
+    @keyframes fxPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.35;transform:scale(.8);} }
+  </style>
+  <template id="__bundler_thumbnail">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="18" fill="#161d2b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#3730a3"/><text x="50" y="64" text-anchor="middle" font-size="30" font-weight="800" fill="#fff" font-family="sans-serif">F</text></svg>
+  </template>
+</helmet>
+
+<!-- Login -->
+<div style="position:absolute; left:0px; top:60px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="1. 로그인" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">1 · 로그인 <span style="color:#9aa7bd; font-weight:400;">— 공개 라우트 · 3단 철학 소개</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="LoginScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div style="position:absolute; left:1440px; top:60px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="2. 대시보드" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">2 · 대시보드 / 홈 <span style="color:#9aa7bd; font-weight:400;">— 유동성 경보 · 처리 큐 · 최근 활동</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="DashboardScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Upload -->
+<div style="position:absolute; left:0px; top:1000px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="3. 업로드" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">3 · 업로드 마법사 <span style="color:#9aa7bd; font-weight:400;">— 검증 게이트(FATAL 차단) · AI 생성 비활성</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="UploadScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Cash -->
+<div style="position:absolute; left:1440px; top:1000px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="4. 자금일보" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">4 · 자금일보 <span style="color:#9aa7bd; font-weight:400;">— KPI · 현금흐름 예측(안전선 하회) · 거래 내역</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="CashScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Report -->
+<div style="position:absolute; left:0px; top:1940px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="5. 리포트 뷰어" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">5 · 리포트 뷰어 <span style="color:#9aa7bd; font-weight:400;">— ★ 3단 구조 핵심 · 근거 추적 · 승인 바</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="ReportScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Closing -->
+<div style="position:absolute; left:1440px; top:1940px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="6. 월결산" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">6 · 월결산 <span style="color:#9aa7bd; font-weight:400;">— 시산표/재무제표/이상분개/계정대사 · 차대 검증</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="ClosingScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Audit -->
+<div style="position:absolute; left:0px; top:2880px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="7. 감사로그" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">7 · 감사로그 <span style="color:#9aa7bd; font-weight:400;">— 행위자·액션·대상·시각 · 팀장/관리자만</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="AuditScreen" hint-size="1280px,860px"></dc-import>
+  </div>
+</div>
+
+<!-- Design system -->
+<div style="position:absolute; left:1440px; top:2880px; width:1280px;">
+  <div data-drags-parent="1" data-screen-label="디자인 시스템" style="font-size:13px; font-weight:600; color:#46536a; margin-bottom:9px; cursor:grab;">디자인 시스템 <span style="color:#9aa7bd; font-weight:400;">— 토큰 · 타이포 · 상태 배지 · 출처 구분 원칙</span></div>
+  <div style="background:#fff; border-radius:3px; box-shadow:0 1px 4px rgba(16,24,40,0.1); overflow:hidden;">
+    <dc-import name="DesignSystem" hint-size="1280px,600px"></dc-import>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
