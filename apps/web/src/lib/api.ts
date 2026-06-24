@@ -62,16 +62,45 @@ http.interceptors.response.use(
   },
 );
 
+// 웹 Domain('cashflow'|'monthly_close') ↔ 백엔드 도메인('cash'|'closing') 매핑.
+const toBackendDomain = (d: Domain): 'cash' | 'closing' =>
+  d === 'monthly_close' ? 'closing' : 'cash';
+
 // ───── 인증 ─────
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const { data } = await http.post<LoginResponse>('/auth/login', { email, password });
   return data;
 }
 
-// ───── 업로드 (DataConnector) ─────
-export async function listTemplates(domain: Domain): Promise<TemplateInfo[]> {
-  const { data } = await http.get<TemplateInfo[]>('/upload/templates', { params: { domain } });
+/** 현재 세션 검증(/auth/me). 토큰이 만료/무효면 401 → 인터셉터가 로그인으로. */
+export async function getMe(): Promise<import('./types').AuthUser> {
+  const { data } = await http.get<import('./types').AuthUser>('/auth/me');
   return data;
+}
+
+// ───── 업로드 (DataConnector) ─────
+interface BackendTemplate {
+  templateKey: string;
+  datasetKind: string;
+  domain: 'cash' | 'closing';
+  label: string;
+  requiredColumns: string[];
+  optionalColumns?: string[];
+  sampleRows?: Record<string, string>[];
+}
+
+export async function listTemplates(domain: Domain): Promise<TemplateInfo[]> {
+  const { data } = await http.get<{ templates: BackendTemplate[] }>('/upload/templates', {
+    params: { domain: toBackendDomain(domain) },
+  });
+  const templates = Array.isArray(data) ? (data as BackendTemplate[]) : (data.templates ?? []);
+  return templates.map((t) => ({
+    templateId: t.templateKey,
+    domain,
+    label: t.label,
+    requiredColumns: t.requiredColumns.map((field) => ({ field, label: field, required: true })),
+    sampleRows: t.sampleRows ?? [],
+  }));
 }
 
 export async function uploadFile(
@@ -174,9 +203,39 @@ export async function listAuditLogs(q: AuditQuery = {}): Promise<AuditEntry[]> {
 }
 
 // ───── 대시보드 ─────
+interface BackendDashboard {
+  queue: { uploading: number; blocked: number; drafts: number; pendingApproval: number };
+  liquidityAlerts: { id: string; severity: string; message: string; value?: string }[];
+  recentActivity: { action: string; targetType: string; targetId: string; createdAt: string }[];
+}
+
 export async function getDashboardSummary(): Promise<DashboardSummary> {
-  const { data } = await http.get<DashboardSummary>('/dashboard/summary');
-  return data;
+  const { data } = await http.get<BackendDashboard>('/finance/dashboard');
+  const sevMap = (s: string): 'high' | 'medium' | 'low' =>
+    s === 'FATAL' ? 'high' : s === 'WARN' ? 'medium' : 'low';
+  return {
+    queue: {
+      uploading: data.queue?.uploading ?? 0,
+      validationFailed: data.queue?.blocked ?? 0,
+      draft: data.queue?.drafts ?? 0,
+      pendingApproval: data.queue?.pendingApproval ?? 0,
+    },
+    liquidityAlerts: (data.liquidityAlerts ?? []).map((a) => ({
+      id: a.id,
+      severity: sevMap(a.severity),
+      title: a.message,
+      detail: a.value ? `값 ${a.value}` : undefined,
+      amount: a.value,
+    })),
+    recentActivity: (data.recentActivity ?? []).map((r, i) => ({
+      id: `${r.createdAt}-${i}`,
+      actorName: '',
+      action: r.action,
+      targetType: r.targetType,
+      targetId: r.targetId,
+      createdAt: r.createdAt,
+    })),
+  };
 }
 
 // ───── 도메인 요약(자금일보 / 월결산) ─────
