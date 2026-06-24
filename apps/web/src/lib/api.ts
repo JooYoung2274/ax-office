@@ -68,8 +68,12 @@ const toBackendDomain = (d: Domain): 'cash' | 'closing' =>
 
 // ───── 인증 ─────
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const { data } = await http.post<LoginResponse>('/auth/login', { email, password });
-  return data;
+  // 백엔드는 { accessToken, user }를 반환 — 웹 내부 표현 { token, user }로 매핑.
+  const { data } = await http.post<{ accessToken: string; user: LoginResponse['user'] }>(
+    '/auth/login',
+    { email, password },
+  );
+  return { token: data.accessToken, user: data.user };
 }
 
 /** 현재 세션 검증(/auth/me). 토큰이 만료/무효면 401 → 인터셉터가 로그인으로. */
