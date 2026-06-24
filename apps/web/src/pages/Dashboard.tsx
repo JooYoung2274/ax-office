@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import type { AuditEntry, LiquidityAlert } from '../lib/types';
 
 // 결정론 CRO 검증 칩(인디고). 출처가 코드·사실임을 표시.
-function CroChip({ label = 'CRO 검증' }: { label?: string }) {
+function CroChip({ label = '자동 계산값' }: { label?: string }) {
   return (
     <span className="cro-chip">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
@@ -106,7 +106,7 @@ export function Dashboard() {
               style={{ display: 'inline-flex', width: 7, height: 7, borderRadius: '50%', background: 'var(--danger)' }}
             />
             <h2>유동성 경보</h2>
-            <CroChip label="결정론적 산출" />
+            <CroChip label="자동 산출" />
           </div>
           <span className="meta">
             위험도 높은 순 · <span className="tnum">{alerts.length}</span>건
@@ -151,7 +151,7 @@ export function Dashboard() {
                   </span>
                   <span className="alert-right">
                     <span className="link">근거 보기 →</span>
-                    <div className="src">자금일보 · 결정론 산출</div>
+                    <div className="src">자금일보 · 자동 계산</div>
                   </span>
                 </button>
               );
@@ -204,7 +204,7 @@ export function Dashboard() {
             >
               <div className="qlabel">
                 <span className="qpip" style={{ background: 'var(--warn)' }} />
-                Draft 미승인
+                초안 미승인
               </div>
               <div className="qnum tnum" style={queue.draft > 0 ? { color: 'var(--warn-text)' } : undefined}>
                 {queue.draft}

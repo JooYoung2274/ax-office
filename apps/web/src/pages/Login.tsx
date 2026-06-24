@@ -59,7 +59,7 @@ export function Login() {
             결정은 사람이.
           </h2>
           <p className="lead">
-            단순 계산과 검증은 결정론적 코드(CRO)가 100% 책임집니다. AI는 근거를 인용한 보조
+            단순 계산과 검증은 자동화된 코드가 100% 책임집니다. AI는 근거를 인용한 보조
             리포트만 제공하며, 최종 승인은 언제나 담당자의 몫입니다.
           </p>
 
@@ -73,7 +73,7 @@ export function Login() {
               >
                 1
               </span>
-              결정론적 수치 검증 (차대 일치·잔액)
+              자동 수치 검증 (차대 일치·잔액)
             </div>
             <div className="login-tier">
               <span

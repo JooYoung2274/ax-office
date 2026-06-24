@@ -138,7 +138,7 @@ export function AppLayout() {
             <span className="pip" />
             백엔드 연결됨
           </div>
-          <div style={{ marginTop: 3, color: '#46536a' }}>CRO 엔진 v1.0 · 결정론적 검증</div>
+          <div style={{ marginTop: 3, color: '#46536a' }}>자동 검증 엔진 v1.0</div>
         </div>
       </aside>
 

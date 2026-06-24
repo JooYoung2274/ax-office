@@ -81,10 +81,10 @@ export function MonthlyClosing() {
           <div style={{ flex: 1 }}>
             <div className="t1">검증 통과 — 차변·대변 합계 일치</div>
             <div className="t2">
-              차변 합계 ₩{groupDigits(d.debitTotal)} = 대변 합계 ₩{groupDigits(d.creditTotal)} · CRO 결정론적 검증
+              차변 합계 ₩{groupDigits(d.debitTotal)} = 대변 합계 ₩{groupDigits(d.creditTotal)} · 자동 검증
             </div>
           </div>
-          <span className="badge badge-calc">CALCULATED · 계산완료</span>
+          <span className="badge badge-calc">계산 완료</span>
         </div>
       ) : (
         <div className="block-panel">
@@ -99,7 +99,7 @@ export function MonthlyClosing() {
             <div>
               <h2>차대 불일치 — 결산 미완료, AI 리포트 차단</h2>
               <p>
-                차변 합계와 대변 합계가 일치하지 않습니다. 결정론 검증을 통과하지 못한 데이터로는 AI 리포트를
+                차변 합계와 대변 합계가 일치하지 않습니다. 검증을 통과하지 못한 데이터로는 AI 리포트를
                 생성할 수 없습니다. 시산표를 정정한 뒤 재계산하세요.
               </p>
             </div>
@@ -148,7 +148,7 @@ export function MonthlyClosing() {
                   <EmptyState
                     emoji="▦"
                     title="계정별 시산표 상세가 아직 없습니다"
-                    description="CRO가 계정별 차·대변 행을 제공하면 표시됩니다. 아래 합계는 결정론 검증값입니다."
+                    description="CRO가 계정별 차·대변 행을 제공하면 표시됩니다. 아래 합계는 자동 검증값입니다."
                   />
                 </td>
               </tr>
@@ -239,7 +239,7 @@ export function MonthlyClosing() {
               <h2>이상분개</h2>
               {anomalyCount > 0 && <span className="count">{anomalyCount}</span>}
             </div>
-            <span className="meta">결정론 룰 탐지 · AI는 설명·우선순위만 보조</span>
+            <span className="meta">자동 룰 탐지 · AI는 설명·우선순위만 보조</span>
           </div>
           {anomalyCount === 0 ? (
             <EmptyState emoji="✓" title="탐지된 이상 분개가 없습니다" description="모든 분개가 검증 룰을 통과했습니다." />
@@ -277,7 +277,7 @@ export function MonthlyClosing() {
             <div className="head-left">
               <h2>계정대사</h2>
             </div>
-            <span className="meta">장부 vs 대사대상 · 결정론 비교</span>
+            <span className="meta">장부 vs 대사대상 · 자동 비교</span>
           </div>
           {d.reconciliations.length === 0 ? (
             <EmptyState emoji="▦" title="대사 대상 계정이 없습니다" description="대사 대상 데이터를 연동하면 표시됩니다." />

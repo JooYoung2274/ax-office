@@ -251,7 +251,7 @@ function Step1Template({
               <h2 style={{ fontSize: 13 }}>{template ? `표준 템플릿 · ${template.label}` : '표준 템플릿'}</h2>
               <span className="cro-chip">
                 <IcShield />
-                CRO 표준 스키마
+                표준 양식
               </span>
             </div>
             {template && (
@@ -661,7 +661,7 @@ function Step3Validation({
               <h2>검증 결과</h2>
               <span className="cro-chip">
                 <IcShield />
-                CRO 결정론적 검증
+                자동 검증
               </span>
             </div>
           </div>
@@ -705,7 +705,7 @@ function Step3Validation({
             <div className="btn-stack">
               <span
                 className="tip"
-                data-tip="결정론적 검증(FATAL)을 통과해야 AI 리포트를 생성할 수 있습니다."
+                data-tip="필수 검증을 통과해야 AI 리포트를 생성할 수 있습니다."
               >
                 <button className="btn" disabled>
                   <IcLock />
@@ -720,7 +720,7 @@ function Step3Validation({
           ) : (
             <button className="btn btn-primary" disabled={gen.isPending} onClick={() => gen.mutate()}>
               <IcShield size={15} />
-              {gen.isPending ? 'Draft 생성 중…' : 'AI 리포트 생성 (Draft) ▶'}
+              {gen.isPending ? '초안 생성 중…' : 'AI 리포트 생성 ▶'}
             </button>
           )}
         </div>
@@ -731,7 +731,7 @@ function Step3Validation({
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 18px', background: 'var(--confirm-bg)' }}>
             <span style={{ color: 'var(--confirm)' }}><IcCheck size={18} /></span>
             <div>
-              <div style={{ fontWeight: 700, color: 'var(--confirm-strong)' }}>Draft 리포트 생성을 시작했습니다</div>
+              <div style={{ fontWeight: 700, color: 'var(--confirm-strong)' }}>초안 리포트 생성을 시작했습니다</div>
               <div className="muted" style={{ fontSize: 12.5, marginTop: 2 }}>
                 리포트 화면에서 생성 진행 상황과 근거를 확인하세요.
               </div>
@@ -785,7 +785,7 @@ function BlockPanel({ v }: { v: ValidationResponse }) {
         <div style={{ flex: 1 }}>
           <h2>검증 실패 — AI 리포트 생성이 차단되었습니다</h2>
           <p>
-            결정론적 검증을 통과하지 못한 데이터로는 AI 분석을 진행하지 않습니다.
+            검증을 통과하지 못한 데이터로는 AI 분석을 진행하지 않습니다.
             {balanceFinding ? ' 차변 합계와 대변 합계가 일치하지 않습니다.' : ''} 문제 행을 수정한 뒤 재업로드해 주세요.
             (버튼 비활성 + 서버 API 거부의 이중 차단)
           </p>
@@ -846,7 +846,7 @@ function ProblemRow({ f }: { f: ValidationFinding }) {
     <tr>
       <td>
         {isFatal ? (
-          <span style={{ color: 'var(--danger-text)', fontWeight: 700 }}>FATAL</span>
+          <span style={{ color: 'var(--danger-text)', fontWeight: 700 }}>치명 오류</span>
         ) : (
           <span style={{ color: 'var(--warn-text)', fontWeight: 700 }}>WARN</span>
         )}

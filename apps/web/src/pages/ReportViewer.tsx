@@ -91,12 +91,12 @@ export function ReportViewer() {
           <button
             className="btn"
             disabled={!isApproved}
-            title={isApproved ? '리포트 Export' : '승인 전에는 Export·외부 공유가 차단됩니다'}
+            title={isApproved ? '리포트 내보내기(PDF)' : '승인 전에는 내보내기·외부 공유가 차단됩니다'}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>
-            Export
+            내보내기
           </button>
         </div>
       </div>
@@ -113,7 +113,7 @@ export function ReportViewer() {
         <div className="state">
           <span className="emoji">🤖</span>
           <div className="s-title">AI 리포트 생성 중…</div>
-          <p className="muted">Claude가 CRO를 근거로 Draft를 작성하고 있습니다. 잠시만 기다려 주세요.</p>
+          <p className="muted">코드 계산값을 근거로 AI가 초안을 작성하고 있습니다. 잠시만 기다려 주세요.</p>
         </div>
       ) : !content ? (
         <EmptyState title="리포트 본문이 아직 없습니다" description="생성이 완료되면 findings와 근거가 표시됩니다." />
@@ -122,7 +122,7 @@ export function ReportViewer() {
           {/* 미승인 시에만 워터마크 강제 */}
           {!isApproved && (
             <div className="draft-watermark" aria-hidden>
-              <span>DRAFT · 미승인</span>
+              <span>초안 · 미승인</span>
             </div>
           )}
 
@@ -135,10 +135,10 @@ export function ReportViewer() {
                     <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
                     <circle cx="12" cy="12" r="4" />
                   </svg>
-                  DRAFT · 미승인
+                  초안 · 미승인
                 </span>
                 <span className="note">
-                  이 리포트는 승인 전 초안입니다. Export·외부 공유는 승인 후 가능합니다.
+                  이 리포트는 승인 전 초안입니다. 내보내기·외부 공유는 승인 후 가능합니다.
                 </span>
                 <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--faint)' }}>
                   <span className="ai-chip">AI 작성</span>
@@ -166,7 +166,7 @@ export function ReportViewer() {
 
                   {findings.length === 0 ? (
                     <p className="muted" style={{ fontSize: 12.5 }}>
-                      CRO 근거로 도출된 발견 사항이 없습니다. (데이터 한계는 아래 caveats 참조)
+                      근거 수치로 도출된 발견 사항이 없습니다. (데이터 한계는 아래 caveats 참조)
                     </p>
                   ) : (
                     findings.map((f, i) => {
@@ -266,9 +266,9 @@ export function ReportViewer() {
                         <path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z" />
                         <path d="M9 12l2 2 4-4" />
                       </svg>
-                      CRO
+                      계산값
                     </span>
-                    <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>근거 수치 · 결정론적</h2>
+                    <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>근거 수치 · 자동 계산</h2>
                   </div>
                 </div>
                 <div style={{ padding: '11px 13px' }}>
@@ -281,7 +281,7 @@ export function ReportViewer() {
                   </div>
 
                   {croRows.length === 0 ? (
-                    <p className="muted" style={{ fontSize: 12 }}>연동된 CRO 수치가 없습니다.</p>
+                    <p className="muted" style={{ fontSize: 12 }}>연동된 계산 수치가 없습니다.</p>
                   ) : (
                     <div className="cro-rows">
                       {croRows.map((m) => {
@@ -303,7 +303,7 @@ export function ReportViewer() {
                   )}
 
                   <div style={{ marginTop: 10, fontSize: 11, color: 'var(--faint)', lineHeight: 1.6 }}>
-                    이 수치는 업로드 데이터에 대해 코드가 100% 결정론적으로 산출·검증한 값입니다. AI는 이 값을 인용만 하며 수정하지 않습니다.
+                    이 수치는 업로드 데이터를 코드가 100% 자동으로 산출·검증한 값입니다. AI는 이 값을 인용만 하며 수정하지 않습니다.
                   </div>
                 </div>
               </section>

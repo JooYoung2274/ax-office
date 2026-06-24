@@ -22,7 +22,7 @@ export function Reports() {
           <div className="head-left">
             <h2>리포트</h2>
             <span className="meta">
-              모든 리포트는 Draft로 생성되며, 사람 승인 전까지 비노출·Export 불가입니다.
+              모든 리포트는 초안으로 생성되며, 사람 승인 전까지 비공개이고 내보낼 수 없습니다.
             </span>
           </div>
           <div className="flex items-center gap-9">
@@ -40,7 +40,7 @@ export function Reports() {
           <EmptyState
             emoji="◫"
             title="아직 생성된 리포트가 없습니다"
-            description="데이터를 업로드하고 검증을 통과하면 AI 리포트(Draft)를 생성할 수 있습니다."
+            description="데이터를 업로드하고 검증을 통과하면 AI 리포트(초안)를 생성할 수 있습니다."
             actions={
               <button className="btn btn-primary" onClick={() => nav('/upload')}>
                 업로드 하러 가기
