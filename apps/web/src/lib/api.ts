@@ -109,12 +109,15 @@ export async function listTemplates(domain: Domain): Promise<TemplateInfo[]> {
 
 export async function uploadFile(
   file: File,
-  domain: Domain,
+  opts: { templateKey: string; domain: Domain; period: string },
   onProgress?: (pct: number) => void,
 ): Promise<Batch> {
+  // 백엔드 POST /upload/files는 templateKey + domain('cash'|'closing') + period를 요구.
   const form = new FormData();
   form.append('file', file);
-  form.append('domain', domain);
+  form.append('templateKey', opts.templateKey);
+  form.append('domain', toBackendDomain(opts.domain));
+  form.append('period', opts.period);
   const { data } = await http.post<Batch>('/upload/files', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: (e) => {

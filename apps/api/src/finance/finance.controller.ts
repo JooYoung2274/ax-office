@@ -22,4 +22,16 @@ export class FinanceController {
   periods(@Query('domain') domain: 'cash' | 'closing' = 'cash') {
     return this.finance.listPeriods(domain);
   }
+
+  /** GET /finance/cash-daily?asOfDate= — 자금일보 요약(CashDailySummary). */
+  @Get('cash-daily')
+  cashDaily(@Query('asOfDate') asOfDate?: string) {
+    return this.finance.cashDaily(asOfDate);
+  }
+
+  /** GET /finance/monthly-closing?period= — 월결산 요약(MonthlyClosingSummary). */
+  @Get('monthly-closing')
+  monthlyClosing(@Query('period') period?: string) {
+    return this.finance.monthlyClosing(period);
+  }
 }

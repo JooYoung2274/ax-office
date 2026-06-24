@@ -43,6 +43,29 @@ export class ReportService {
   ) {}
 
   /**
+   * 리포트 목록(GET /reports) — 테넌트 리포트를 최신순으로. 웹 ReportDto[] 형태.
+   * slice 'cash'→'cashflow', 'closing'→'monthly_close'로 도메인 매핑.
+   */
+  async listReports() {
+    const reports = await this.prisma.report.findMany({
+      where: { tenantId: this.tenant.tenantId },
+      orderBy: { createdAt: 'desc' },
+      include: { createdBy: { select: { name: true } } },
+    });
+    return reports.map((r) => ({
+      reportId: r.id,
+      title: r.title,
+      status: r.status,
+      domain: r.slice === 'cash' ? 'cashflow' : 'monthly_close',
+      period: r.period ?? undefined,
+      createdAt: r.createdAt.toISOString(),
+      authorName: r.createdBy?.name ?? '',
+      authorId: r.createdById,
+      stale: r.stale,
+    }));
+  }
+
+  /**
    * AI 리포트 생성 트리거(POST /batches/:id/reports).
    * CRO 존재 + non-blocked 확인 후 Report(AI_DRAFTING) 선발급 → report 잡 enqueue.
    */

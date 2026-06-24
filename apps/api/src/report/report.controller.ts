@@ -20,6 +20,13 @@ export class ReportController {
     return this.reports.generate(batchId, user);
   }
 
+  /** GET /reports — 테넌트 리포트 목록(최신순). 웹 ReportDto[]. */
+  @Get('reports')
+  @Roles(Role.FINANCE_STAFF, Role.FINANCE_APPROVER, Role.ADMIN)
+  list() {
+    return this.reports.listReports();
+  }
+
   /** GET /reports/:reportId — 리포트 조회(Draft는 작성자/승인자만). */
   @Get('reports/:reportId')
   @Roles(Role.FINANCE_STAFF, Role.FINANCE_APPROVER, Role.ADMIN)

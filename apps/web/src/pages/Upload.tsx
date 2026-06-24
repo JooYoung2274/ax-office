@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   listTemplates,
@@ -112,18 +112,36 @@ function Steps({ step }: { step: StepNum }) {
 export function UploadWizard() {
   const [step, setStep] = useState<StepNum>(1);
   const [domain, setDomain] = useState<Domain>('cashflow');
+  const [templateKey, setTemplateKey] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [batch, setBatch] = useState<Batch | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
+
+  // 업로드 기간: 자금일보(cashflow)는 일자(YYYY-MM-DD), 월결산은 월(YYYY-MM).
+  // 동일 기간의 여러 파일(계좌·거래·스케줄)이 하나의 CRO로 집계되도록 고정.
+  const period = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return domain === 'monthly_close' ? today.slice(0, 7) : today;
+  }, [domain]);
 
   return (
     <div className="page">
       <Steps step={step} />
 
-      {step === 1 && <Step1Template domain={domain} setDomain={setDomain} onNext={() => setStep(2)} />}
+      {step === 1 && (
+        <Step1Template
+          domain={domain}
+          setDomain={setDomain}
+          templateKey={templateKey}
+          setTemplateKey={setTemplateKey}
+          onNext={() => setStep(2)}
+        />
+      )}
       {step === 2 && (
         <Step2Upload
           domain={domain}
+          templateKey={templateKey}
+          period={period}
           file={file}
           setFile={setFile}
           batch={batch}
@@ -149,14 +167,27 @@ export function UploadWizard() {
 function Step1Template({
   domain,
   setDomain,
+  templateKey,
+  setTemplateKey,
   onNext,
 }: {
   domain: Domain;
   setDomain: (d: Domain) => void;
+  templateKey: string;
+  setTemplateKey: (k: string) => void;
   onNext: () => void;
 }) {
   const q = useQuery({ queryKey: ['templates', domain], queryFn: () => listTemplates(domain) });
-  const template = q.data?.[0];
+  const templates = q.data ?? [];
+  const template = templates.find((t) => t.templateId === templateKey) ?? templates[0];
+
+  // 템플릿 목록 로드/도메인 변경 시 선택값 보정(목록 밖이면 첫 항목으로).
+  useEffect(() => {
+    if (templates.length === 0) return;
+    if (!templates.some((t) => t.templateId === templateKey)) {
+      setTemplateKey(templates[0]!.templateId);
+    }
+  }, [templates, templateKey, setTemplateKey]);
 
   return (
     <section className="section">
@@ -195,10 +226,28 @@ function Step1Template({
           ))}
         </div>
 
+        {templates.length > 1 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {templates.map((t) => {
+              const on = t.templateId === template?.templateId;
+              return (
+                <button
+                  key={t.templateId}
+                  type="button"
+                  className={`btn btn-sm${on ? ' btn-primary' : ''}`}
+                  onClick={() => setTemplateKey(t.templateId)}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <div className="section" style={{ background: 'var(--surface)' }}>
           <div className="section-head">
             <div className="head-left">
-              <h2 style={{ fontSize: 13 }}>표준 템플릿</h2>
+              <h2 style={{ fontSize: 13 }}>{template ? `표준 템플릿 · ${template.label}` : '표준 템플릿'}</h2>
               <span className="cro-chip">
                 <IcShield />
                 CRO 표준 스키마
@@ -267,6 +316,8 @@ function Step1Template({
 // ───── Step 2: 파일 업로드 ─────
 function Step2Upload({
   domain,
+  templateKey,
+  period,
   file,
   setFile,
   batch,
@@ -277,6 +328,8 @@ function Step2Upload({
   onNext,
 }: {
   domain: Domain;
+  templateKey: string;
+  period: string;
   file: File | null;
   setFile: (f: File | null) => void;
   batch: Batch | null;
@@ -289,7 +342,7 @@ function Step2Upload({
   const [progress, setProgress] = useState(0);
 
   const upload = useMutation({
-    mutationFn: (f: File) => uploadFile(f, domain, setProgress),
+    mutationFn: (f: File) => uploadFile(f, { templateKey, domain, period }, setProgress),
     onSuccess: (b) => setBatch(b),
   });
 
