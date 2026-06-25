@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { PrismaModule } from './prisma/prisma.module';
@@ -15,6 +16,7 @@ import { UploadModule } from './upload/upload.module';
 import { CalcModule } from './calc/calc.module';
 import { ReportModule } from './report/report.module';
 import { FinanceModule } from './finance/finance.module';
+import { MarketIntelModule } from './market-intel/market-intel.module';
 import { HealthController } from './health/health.controller';
 
 /**
@@ -28,6 +30,9 @@ import { HealthController } from './health/health.controller';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // @nestjs/schedule 루트(크론 등록). 주간 시장 인텔리전스 자동 실행에 사용.
+    ScheduleModule.forRoot(),
 
     // BullMQ 루트(Redis). 모든 큐가 공유.
     BullModule.forRootAsync({
@@ -52,6 +57,7 @@ import { HealthController } from './health/health.controller';
     CalcModule,
     ReportModule,
     FinanceModule,
+    MarketIntelModule,
   ],
   controllers: [HealthController],
   providers: [

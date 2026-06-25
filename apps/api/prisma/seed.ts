@@ -46,6 +46,31 @@ async function main(): Promise<void> {
     console.log(`사용자 시드: ${u.email} (${u.role})`);
   }
 
+  // 사업기획 — 시장·경쟁 인텔리전스 모니터링 대상(두비덥 기준 예시).
+  const monitorTargets: Array<{ type: 'competitor' | 'keyword'; name: string }> = [
+    { type: 'competitor', name: '수퍼톤' },
+    { type: 'competitor', name: '타입캐스트' },
+    { type: 'competitor', name: '네이버' },
+    { type: 'competitor', name: '일레븐랩스' },
+    { type: 'competitor', name: '리디' },
+    { type: 'competitor', name: '밀리의서재' },
+    { type: 'keyword', name: '음성합성' },
+    { type: 'keyword', name: '보이스클로닝' },
+    { type: 'keyword', name: 'AI더빙' },
+    { type: 'keyword', name: '오디오북' },
+    { type: 'keyword', name: '보이스툰' },
+    { type: 'keyword', name: '음성저작권' },
+    { type: 'keyword', name: '딥페이크' },
+  ];
+  for (const t of monitorTargets) {
+    await prisma.monitorTarget.upsert({
+      where: { tenantId_type_name: { tenantId: tenant.id, type: t.type as never, name: t.name } },
+      create: { tenantId: tenant.id, type: t.type as never, name: t.name },
+      update: { active: true },
+    });
+  }
+  console.log(`모니터링 대상 시드: 경쟁사·키워드 ${monitorTargets.length}건`);
+
   console.log('\n시드 완료. 로그인 예시:');
   console.log('  POST /api/v1/auth/login  { "email":"staff@axaxax.dev", "password":"staff1234" }');
 }

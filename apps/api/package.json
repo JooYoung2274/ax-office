@@ -20,9 +20,9 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@axaxax/shared": "*",
     "@axaxax/calc-engine": "*",
     "@axaxax/report-engine": "*",
+    "@axaxax/shared": "*",
     "@nestjs/bullmq": "^10.2.1",
     "@nestjs/common": "^10.4.4",
     "@nestjs/config": "^3.2.3",
@@ -30,6 +30,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.4",
+    "@nestjs/schedule": "^4.1.2",
     "@prisma/client": "^5.20.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.18.0",

@@ -447,3 +447,83 @@ model AuditLog {
   @@index([tenantId, targetType, targetId])
   @@index([tenantId, action, createdAt])
 }
+
+// ---------- 사업기획: 시장·경쟁 인텔리전스 ----------
+enum TargetType {
+  competitor // 경쟁사
+  keyword // 키워드
+}
+
+// 두비덥 관점 카테고리(제품출시/투자·M&A/제휴/가격/규제·법률/기술/기타)
+enum BriefCategory {
+  product_launch
+  investment_ma
+  partnership
+  pricing
+  regulation
+  tech
+  other
+}
+
+// 모니터링 대상(경쟁사/키워드). config 대신 DB로 관리 — 시드로 두비덥 기본값 제공.
+model MonitorTarget {
+  id        String     @id @default(cuid())
+  tenantId  String
+  type      TargetType
+  name      String // 경쟁사명 또는 키워드
+  rssUrl    String? // 경쟁사별 RSS/뉴스 피드(옵션)
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  @@unique([tenantId, type, name])
+  @@index([tenantId, active])
+}
+
+// 수집·정규화된 피드 항목. dedupHash로 중복/새 항목 판별(이력 저장).
+model FeedItem {
+  id            String         @id @default(cuid())
+  tenantId      String
+  dedupHash     String // 정규화 url|title 해시
+  title         String
+  url           String
+  source        String?
+  publishedAt   DateTime?
+  summaryRaw    String? // 원문 요약/본문 일부(LLM 입력)
+  matchedTargets String[] // 매칭된 target 이름
+  firstSeenAt   DateTime       @default(now())
+  briefingItems BriefingItem[]
+
+  @@unique([tenantId, dedupHash]) // 중복 차단
+  @@index([tenantId, firstSeenAt])
+}
+
+// 주간 브리핑(실행 단위).
+model Briefing {
+  id         String         @id @default(cuid())
+  tenantId   String
+  periodFrom DateTime
+  periodTo   DateTime
+  itemCount  Int            @default(0)
+  status     String         @default("done") // generating / done / empty
+  trigger    String         @default("manual") // manual / cron
+  createdAt  DateTime       @default(now())
+  items      BriefingItem[]
+
+  @@index([tenantId, createdAt])
+}
+
+// 브리핑 항목별 LLM 산출(요약·분류·시사점).
+model BriefingItem {
+  id             String        @id @default(cuid())
+  briefingId     String
+  briefing       Briefing      @relation(fields: [briefingId], references: [id])
+  feedItemId     String
+  feedItem       FeedItem      @relation(fields: [feedItemId], references: [id])
+  category       BriefCategory
+  summary        String // 한국어 3~4줄 요약
+  implication    String // 두비덥 관점 시사점 1줄
+  matchedTargets String[]
+  order          Int           @default(0)
+
+  @@index([briefingId])
+}
