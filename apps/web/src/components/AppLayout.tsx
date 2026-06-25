@@ -58,6 +58,12 @@ const I = {
       <path d="M21 21l-4-4" />
     </svg>
   ),
+  intel: (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 17l5-5 4 4 8-9" />
+      <path d="M21 7v5h-5" />
+    </svg>
+  ),
 };
 
 const NAV: NavDef[] = [
@@ -66,6 +72,7 @@ const NAV: NavDef[] = [
   { to: '/cash-daily', label: '자금일보', title: '자금일보', icon: I.cash },
   { to: '/monthly-closing', label: '월결산', title: '월결산', icon: I.closing },
   { to: '/payroll', label: '급여', title: '급여', icon: I.payroll },
+  { to: '/market-intel', label: '시장정보', title: '시장·경쟁 인텔리전스', icon: I.intel },
   { to: '/reports', label: '리포트', title: '리포트', icon: I.report },
   {
     to: '/audit-log',

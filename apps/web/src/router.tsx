@@ -8,6 +8,7 @@ import { UploadWizard } from './pages/Upload';
 import { CashDaily } from './pages/CashDaily';
 import { MonthlyClosing } from './pages/MonthlyClosing';
 import { Payroll } from './pages/Payroll';
+import { MarketIntel } from './pages/MarketIntel';
 import { Reports } from './pages/Reports';
 import { ReportViewer } from './pages/ReportViewer';
 import { AuditLogPage } from './pages/AuditLog';
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: 'cash-daily', element: <CashDaily /> },
       { path: 'monthly-closing', element: <MonthlyClosing /> },
       { path: 'payroll', element: <Payroll /> },
+      { path: 'market-intel', element: <MarketIntel /> },
       { path: 'reports', element: <Reports /> },
       { path: 'reports/:reportId', element: <ReportViewer /> },
       {

@@ -232,6 +232,41 @@ export interface PayrollSummary {
   alerts: { id: string; severity: 'high' | 'medium' | 'low'; title: string; amount?: string }[];
 }
 
+/** 사업기획 — 시장·경쟁 인텔리전스 브리핑. */
+export type BriefCategory =
+  | 'product_launch'
+  | 'investment_ma'
+  | 'partnership'
+  | 'pricing'
+  | 'regulation'
+  | 'tech'
+  | 'other';
+
+export interface BriefingItemDto {
+  id: string;
+  title: string;
+  url: string;
+  source?: string;
+  publishedAt?: string;
+  category: BriefCategory;
+  summary: string;
+  implication: string;
+  matchedTargets: string[];
+}
+
+export interface BriefingDetail {
+  id: string;
+  periodFrom: string;
+  periodTo: string;
+  itemCount: number;
+  status: string;
+  trigger: string;
+  createdAt: string;
+  items: BriefingItemDto[];
+}
+
+export type BriefingListItem = Omit<BriefingDetail, 'items'>;
+
 /** 월결산(슬라이스 B) 요약. */
 export interface MonthlyClosingSummary {
   period: string;

@@ -19,6 +19,8 @@ import type {
   CashDailySummary,
   MonthlyClosingSummary,
   PayrollSummary,
+  BriefingDetail,
+  BriefingListItem,
 } from './types';
 
 const TOKEN_KEY = 'axaxax.token';
@@ -260,6 +262,40 @@ export async function getMonthlyClosing(period?: string): Promise<MonthlyClosing
 export async function getPayrollSummary(period?: string): Promise<PayrollSummary> {
   const { data } = await http.get<PayrollSummary>('/finance/payroll', { params: { period } });
   return data;
+}
+
+// ── 사업기획: 시장·경쟁 인텔리전스 ───────────────────────────
+export async function runMarketIntel(): Promise<BriefingDetail> {
+  const { data } = await http.post<BriefingDetail>('/market-intel/run');
+  return data;
+}
+
+export async function getBriefings(): Promise<BriefingListItem[]> {
+  const { data } = await http.get<{ briefings: BriefingListItem[] }>('/market-intel/briefings');
+  return data.briefings;
+}
+
+export async function getBriefing(id: string): Promise<BriefingDetail> {
+  const { data } = await http.get<BriefingDetail>(`/market-intel/briefings/${id}`);
+  return data;
+}
+
+/** 브리핑을 Markdown/HTML로 내려받기(Bearer 인증 → blob 다운로드). */
+export async function downloadBriefing(id: string, format: 'md' | 'html'): Promise<void> {
+  const { data } = await http.get(`/market-intel/briefings/${id}/export`, {
+    params: { format },
+    responseType: 'blob',
+  });
+  const mime = format === 'html' ? 'text/html;charset=utf-8' : 'text/markdown;charset=utf-8';
+  const blob = new Blob([data], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `briefing-${id}.${format}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export async function listReports(params: { status?: string; domain?: Domain } = {}): Promise<ReportDto[]> {
