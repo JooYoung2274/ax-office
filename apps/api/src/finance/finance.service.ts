@@ -390,6 +390,8 @@ export class FinanceService {
         incomeTaxTotal: '0',
         deductionTotal: '0',
         netpayTotal: '0',
+        employerTotal: '0',
+        laborCostTotal: '0',
         employees: [],
         alerts: [],
       };
@@ -428,6 +430,8 @@ export class FinanceService {
         incomeTax,
         deductionTotal,
         netpay: emp('netpay'),
+        employerTotal: emp('employer.total'),
+        laborCost: emp('labor_cost'),
       };
     });
 
@@ -439,6 +443,8 @@ export class FinanceService {
       incomeTaxTotal: agg('payroll.income_tax.total'),
       deductionTotal: agg('payroll.deduction.total'),
       netpayTotal: agg('payroll.netpay.total'),
+      employerTotal: agg('payroll.employer.total'),
+      laborCostTotal: agg('payroll.labor_cost.total'),
       employees,
       alerts: this.toLiquidityAlerts(cro),
     };

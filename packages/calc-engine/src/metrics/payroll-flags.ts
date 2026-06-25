@@ -90,4 +90,25 @@ export const momChange: FlagDef = {
   },
 };
 
-export const PAYROLL_FLAGS: FlagDef[] = [mealOverLimit, highDeductionRate, momChange];
+/** flag.payroll_income_tax_missing — 소득세 미입력(실수령 정확도 제한). */
+export const incomeTaxMissingFlag: FlagDef = {
+  name: 'payroll_income_tax_missing',
+  type: 'payroll_income_tax_missing',
+  compute(ctx) {
+    const missing = allEmps(ctx).filter((e) => e.incomeTaxMissing);
+    if (missing.length === 0) return null;
+    return [
+      {
+        type: 'payroll_income_tax_missing',
+        severity: 'WARN',
+        message: `소득세가 입력되지 않은 직원 ${missing.length}명 — 홈택스 간이세액표 조회값(또는 급여SW 산출값)을 입력해야 실수령액이 정확합니다`,
+        value: String(missing.length),
+        expected: '0',
+        evidenceCells: [],
+        sourceRowIds: missing.map((e) => e.rowId),
+      },
+    ];
+  },
+};
+
+export const PAYROLL_FLAGS: FlagDef[] = [mealOverLimit, highDeductionRate, momChange, incomeTaxMissingFlag];

@@ -56,16 +56,24 @@ export interface Thresholds {
   subledgerVsGlTolerance: string;
 
   // ── 급여·4대보험(payroll) — 근로자 부담 요율(2024 기준, tenant 오버라이드 가능) ──
-  /** 국민연금 요율(근로자). 기본 0.045. */
+  /** 국민연금 요율(근로자=사업주 각각). 기본 0.045. */
   pensionRate: string;
-  /** 국민연금 기준소득월액 상한(원). 기본 6170000. */
+  /** 국민연금 기준소득월액 상한(원). 기본 6170000(2024.7~). */
   pensionMaxBase: string;
-  /** 건강보험 요율(근로자). 기본 0.03545. */
+  /** 국민연금 기준소득월액 하한(원). 기본 390000(2024.7~). */
+  pensionMinBase: string;
+  /** 건강보험 요율(근로자=사업주 각각). 기본 0.03545. */
   healthRate: string;
+  /** 건강보험 보수월액 상한(원). 기본 127056982(2024). */
+  healthMaxBase: string;
   /** 장기요양 요율(건강보험료 대비). 기본 0.1295. */
   ltcareRate: string;
   /** 고용보험 요율(근로자). 기본 0.009. */
   employmentRate: string;
+  /** 고용보험 요율(사업주: 실업급여 0.9% + 고용안정·직능 0.25%, 150인 미만). 기본 0.0115. */
+  employerEmploymentRate: string;
+  /** 산재보험 요율(사업주 100% 부담, 업종별 평균). 기본 0.0147. */
+  accidentRate: string;
   /** 식대 비과세 한도(월, 원). 초과분은 과세. 기본 200000. */
   mealTaxFreeLimit: string;
   /** 공제율(공제합/총지급) 경고 임계(%). 기본 35. */
@@ -88,9 +96,13 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   subledgerVsGlTolerance: '10000',
   pensionRate: '0.045',
   pensionMaxBase: '6170000',
+  pensionMinBase: '390000',
   healthRate: '0.03545',
+  healthMaxBase: '127056982',
   ltcareRate: '0.1295',
   employmentRate: '0.009',
+  employerEmploymentRate: '0.0115',
+  accidentRate: '0.0147',
   mealTaxFreeLimit: '200000',
   deductionRatePct: 35,
   arConcentrationPct: 30,

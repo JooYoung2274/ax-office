@@ -44,17 +44,18 @@ export function Payroll() {
       {/* ── KPI row ─────────────────────────────────────────── */}
       <div
         className="grid-3"
-        style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}
+        style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}
       >
         <KpiCard label="인원수" value={`${d.headcount.toLocaleString('ko-KR')}명`} raw />
         <KpiCard label="총지급액" value={formatWon(d.grossTotal)} />
-        <KpiCard label="총공제" value={formatWon(d.deductionTotal)} tone="neg" />
         <KpiCard label="총실지급" value={formatWon(d.netpayTotal)} />
+        <KpiCard label="회사부담 4대보험" value={formatWon(d.employerTotal)} />
+        <KpiCard label="총 인건비" value={formatWon(d.laborCostTotal)} />
       </div>
 
       {/* ── 계산 근거 안내 한 줄 ───────────────────────────── */}
       <p className="muted" style={{ fontSize: 12, margin: '2px 2px 0' }}>
-        4대보험·소득세·실수령액은 코드가 요율로 계산한 값이며, 이상징후의 해석은 AI 리포트에서 확인하세요.
+        4대보험(근로자·회사부담)·실수령액·총 인건비는 코드가 요율로 계산합니다. <b style={{ color: 'var(--text-2)' }}>소득세는 홈택스 간이세액표 조회값(또는 급여SW 산출값)을 입력</b>하며, 미입력 시 실수령 정확도가 제한됩니다. 이상징후 해석은 AI 리포트에서 확인하세요.
       </p>
 
       {/* ── 4대보험 / 이상 경보 ─────────────────────────────── */}
@@ -110,8 +111,9 @@ export function Payroll() {
               <th className="num">과세소득</th>
               <th className="num">4대보험</th>
               <th className="num">소득세</th>
-              <th className="num">공제계</th>
               <th className="num">실수령</th>
+              <th className="num" style={{ color: 'var(--ai)' }}>회사부담</th>
+              <th className="num" style={{ color: 'var(--ai)' }}>총 인건비</th>
             </tr>
           </thead>
           <tbody>
@@ -123,11 +125,12 @@ export function Payroll() {
                 <td className="num">{formatNum(e.gross)}</td>
                 <td className="num muted">{formatNum(e.taxable)}</td>
                 <td className="num t-neg">{formatNum(e.insuranceTotal)}</td>
-                <td className="num t-neg">{formatNum(e.incomeTax)}</td>
-                <td className="num t-neg">{formatNum(e.deductionTotal)}</td>
+                <td className="num t-neg">{isZero(e.incomeTax) ? '—' : formatNum(e.incomeTax)}</td>
                 <td className="num" style={{ fontWeight: 600 }}>
                   {formatNum(e.netpay)}
                 </td>
+                <td className="num" style={{ color: 'var(--text-3)' }}>{formatNum(e.employerTotal)}</td>
+                <td className="num" style={{ fontWeight: 600 }}>{formatNum(e.laborCost)}</td>
               </tr>
             ))}
           </tbody>
@@ -138,8 +141,9 @@ export function Payroll() {
               <td className="num muted">—</td>
               <td className="num t-neg">{formatNum(d.insuranceTotal)}</td>
               <td className="num t-neg">{formatNum(d.incomeTaxTotal)}</td>
-              <td className="num t-neg">{formatNum(d.deductionTotal)}</td>
               <td className="num">{formatNum(d.netpayTotal)}</td>
+              <td className="num">{formatNum(d.employerTotal)}</td>
+              <td className="num">{formatNum(d.laborCostTotal)}</td>
             </tr>
           </tfoot>
         </table>
@@ -179,6 +183,9 @@ function toNumber(s: string | undefined): number {
 }
 function formatNum(s: string | undefined): string {
   return toNumber(s).toLocaleString('ko-KR');
+}
+function isZero(s: string | undefined): boolean {
+  return toNumber(s) === 0;
 }
 function formatWon(s: string | undefined): string {
   const n = toNumber(s);

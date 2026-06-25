@@ -209,6 +209,10 @@ export interface PayrollEmployee {
   incomeTax: string;
   deductionTotal: string;
   netpay: string;
+  /** 회사부담 4대보험. */
+  employerTotal: string;
+  /** 총 인건비 = 총지급 + 회사부담. */
+  laborCost: string;
 }
 
 /** 급여(슬라이스) 요약. */
@@ -220,6 +224,10 @@ export interface PayrollSummary {
   incomeTaxTotal: string;
   deductionTotal: string;
   netpayTotal: string;
+  /** 회사부담 4대보험 합계. */
+  employerTotal: string;
+  /** 총 인건비 합계(총지급 + 회사부담). */
+  laborCostTotal: string;
   employees: PayrollEmployee[];
   alerts: { id: string; severity: 'high' | 'medium' | 'low'; title: string; amount?: string }[];
 }
